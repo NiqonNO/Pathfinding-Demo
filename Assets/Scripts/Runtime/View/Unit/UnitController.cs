@@ -9,6 +9,6 @@ public class UnitController : MonoBehaviour
     {
         UnitObject unit = Instantiate(UnitPrefab, cell.transform.position, Quaternion.identity, transform);
         unit.Initialize(unitType);
-        cell.OnTouch.AddListener(unit.Select);
+        cell.AssignUnit(unit);
     }
 }

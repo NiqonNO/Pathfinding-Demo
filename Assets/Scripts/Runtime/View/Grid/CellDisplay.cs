@@ -13,6 +13,8 @@ public class CellDisplay : MonoBehaviour
     private TMP_Text Label;
     [SerializeField] 
     private Image Fill;
+    [SerializeField] 
+    private Image Outline;
     
     public void SetSize(float cellSize)
     {
@@ -38,9 +40,18 @@ public class CellDisplay : MonoBehaviour
         };
     }
 
-    public void UpdateLabel(string content, Color color)
+    public void UpdateDisplay(CellPathfindingData data)
     {
-        Label.text = content;
-        Label.color = color;
+        Outline.color = Color.clear;
+        Label.text = string.Empty;
+        if (data.IsAttack)
+        {
+            Outline.color = Color.red;
+        }
+        else if (data.IsRange || data.IsMovementPath)
+        {
+            Label.text = data.Distance.ToString();
+            Outline.color = data.IsMovementPath ? Color.blue : Color.yellow;
+        }
     }
 }

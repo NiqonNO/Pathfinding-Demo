@@ -1,5 +1,5 @@
-﻿public interface IHoverable
+﻿public interface IHoverable : IWorldObject
 {
-    void PointerHover();
-    void PointerLeave();
+    public void PointerHover();
+    public void PointerLeave();
 }

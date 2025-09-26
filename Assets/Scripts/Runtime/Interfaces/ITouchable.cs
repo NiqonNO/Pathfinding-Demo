@@ -1,4 +1,4 @@
-﻿public interface ITouchable
+﻿public interface ITouchable : IWorldObject
 {
-    void Touch();
+    public void Touch();
 }

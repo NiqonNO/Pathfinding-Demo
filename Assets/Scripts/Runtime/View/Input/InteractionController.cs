@@ -12,9 +12,9 @@ public class InteractionController : MonoBehaviour
     private InputReferences PlayerInput;
 
     private ICamera Camera;
-    private IWorldObject SelectedEntity;
-    private IWorldObject HoveredEntity;
     private IWorldObject UnderCursorObject;
+
+    private SelectionHandler SelectionHandler;
     
     RaycastHit[] RaycastHits;
     
@@ -25,6 +25,7 @@ public class InteractionController : MonoBehaviour
     {
         Camera = cameraController;
         RaycastHits = new RaycastHit[RaycastBuffer];
+        SelectionHandler = new SelectionHandler();
     }
     
     private void Awake()
@@ -49,7 +50,7 @@ public class InteractionController : MonoBehaviour
         if (ShouldUpdateObjectUnderCursor)
         {
             UpdateObjectUnderCursor();
-            UpdateHoveredObject();
+            SelectionHandler.OnHover(UnderCursorObject);
             ShouldUpdateObjectUnderCursor = false;
         }
     }
@@ -89,47 +90,6 @@ public class InteractionController : MonoBehaviour
         }
     }
 
-    private void UpdateHoveredObject()
-    {
-        HoverObject(UnderCursorObject);
-    }
-
-    private void SelectEntity(IWorldObject entity)
-    {
-        if (SelectedEntity == entity)
-        {
-            return;
-        }
-
-        SelectedEntity = entity;
-
-        if (SelectedEntity is not ITouchable touchable)
-        {
-            return;
-        }
-        touchable.Touch();
-    }
-
-    private void HoverObject(IWorldObject entity)
-    {
-        if (HoveredEntity == entity)
-        {
-            return;
-        }
-
-        if (HoveredEntity is IHoverable hoverableLeave)
-        {
-            hoverableLeave.PointerLeave();
-        }
-
-        HoveredEntity = entity;
-
-        if (HoveredEntity is IHoverable hoverableEnter)
-        {
-            hoverableEnter.PointerHover();
-        }
-    }
-
     private void PlayerInput_OnZoomCamera(InputAction.CallbackContext callbackContext)
     {
         if (callbackContext.phase != InputActionPhase.Performed)
@@ -138,7 +98,6 @@ public class InteractionController : MonoBehaviour
         }
 
         float zoom = callbackContext.ReadValue<float>() * ScrollScale * Time.deltaTime;
-        ;
 
         Camera?.Zoom(zoom);
 
@@ -153,11 +112,12 @@ public class InteractionController : MonoBehaviour
 
         if (callbackContext.ReadValueAsButton())
         {
-            SelectEntity(HoveredEntity);
+            SelectionHandler.OnSelect(UnderCursorObject);
         }
     }
     private void PlayerInput_OnReturn(InputAction.CallbackContext callbackContext)
     {
+        SelectionHandler.DeselectCurrent();
     }
     private void PlayerInput_OnContext(InputAction.CallbackContext callbackContext)
     {

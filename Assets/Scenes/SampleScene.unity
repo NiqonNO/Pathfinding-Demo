@@ -1111,9 +1111,9 @@ MonoBehaviour:
   VirtualCamera: {fileID: 79509307}
   <GameCamera>k__BackingField: {fileID: 330585545}
   MinMovementSensitivity: 0.2
-  MaxMovementSensitivity: 0.6
+  MaxMovementSensitivity: 1
   MinZoomValue: 2
-  MaxZoomValue: 6
+  MaxZoomValue: 10
   ZoomSensitivity: 10
 --- !u!4 &1488252581
 Transform:
