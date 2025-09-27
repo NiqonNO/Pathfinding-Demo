@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <MoveRange>k__BackingField: 6
   <AttackRange>k__BackingField: 8
-  <MoveSpeed>k__BackingField: 0.5
   <NeutralTint>k__BackingField: {r: 1, g: 1, b: 1, a: 1}
   <FriendlyTint>k__BackingField: {r: 0.5, g: 1, b: 0.5, a: 1}
   <EnemyTint>k__BackingField: {r: 1, g: 0.5, b: 0.5, a: 1}

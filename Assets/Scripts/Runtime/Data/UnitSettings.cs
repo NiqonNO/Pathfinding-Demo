@@ -9,8 +9,6 @@ public class UnitSettings : ScriptableObject
     public int MoveRange { get; private set; } = 6;
     [field: SerializeField]
     public int AttackRange { get; private set; } = 10;
-    [field: SerializeField]
-    public float MoveSpeed { get; private set; } = 0.5f;
     
     [field: SerializeField]
     private Color NeutralTint { get; set; } = Color.white;

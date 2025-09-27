@@ -13,7 +13,9 @@ public class CellObject : MonoBehaviour, IHoverable, ITouchable, IGridCell
     public UnityEvent OnMouseEnter { get; set; }
     [field: SerializeField]
     public UnityEvent OnMouseExit { get; set; }
-
+    
+    public Transform Transform => transform;
+    
     public CellType CellType { get; private set; }
     public Vector2Int CellCoordinates { get; private set; }
     public IGridUnit Unit { get; private set; }
@@ -48,7 +50,7 @@ public class CellObject : MonoBehaviour, IHoverable, ITouchable, IGridCell
     public void AssignUnit(IGridUnit gridUnit)
     {
         if (Unit == gridUnit) return;
-        if (Occupied)
+        if (gridUnit != null && Occupied)
         {
             Debug.LogError("Cell cannot accept new cellObject, it is still occupied", this);
             return;

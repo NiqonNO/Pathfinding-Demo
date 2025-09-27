@@ -1,11 +1,14 @@
 using UnityEngine;
 
-public class UnitDisplay : MonoBehaviour
+public class UnitDisplay : MonoBehaviour, IAnimator
 {
     private static readonly int TintColor = Shader.PropertyToID("_BaseColor");
     
     [SerializeField] 
     private Renderer MeshRenderer;
+
+    [field: SerializeField] 
+    public Animator Animator { get; private set; }
 
     private MaterialPropertyBlock PropertyBlock;
 

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public interface IGridCell
+public interface IGridCell : IWorldObject
 {
     public Vector2Int CellCoordinates { get; }
     public CellType CellType { get; }

@@ -31,25 +31,29 @@ public class SelectionHandler
         {
             touchable.Touch();
         }
+
+        if (entity is not IGridCell cell) return;
         
-        if (entity is IGridCell cell )
+        if(cell.Occupied &&
+           cell.Unit.ValidForSelection)
         {
-            if(cell.Occupied)
-            {
-                if (cell.Unit.ValidForSelection)
-                {
-                    SelectCell(cell);
-                }
-                else if (SelectedCell != null)
-                {
-                    //PathfindingHandler.AttackPath(SelectedCell, cell);
-                }
-            }
-            else
-            {
-                //PathfindingHandler.MovementPath(SelectedCell, cell);
-            }
+            SelectCell(cell);
+            return;
         }
+        if (SelectedCell == null || SelectedCell is {Occupied: false}) return;
+        IGridUnit unit = SelectedCell.Unit;
+        
+        if (PathfindingHandler.HaveMovementPath)
+        {
+            unit.AddOrder(new MoveOrder(PathfindingHandler.MovementPath));
+        }
+        if (PathfindingHandler.HaveAttackPath)
+        {
+            unit.AddOrder(new AttackOrder(cell));
+        }
+ 
+        DeselectCurrent();
+        unit.RunOrders();
     }
 
     private void HoverCell(IHoverable entity)
