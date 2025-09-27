@@ -73,5 +73,5 @@ public class MovementPathfinding
 public class AttackPathfinding
 {
     public bool Active { get; set; } = false;
-    public int Distance { get; set; } = int.MaxValue;
+    public int Distance { get; set; } = 0;
 }

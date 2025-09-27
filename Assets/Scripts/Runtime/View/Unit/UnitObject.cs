@@ -1,10 +1,14 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Events;
 
 public class UnitObject : MonoBehaviour, IGridUnit
 {
     [SerializeField] 
     private UnitSettings UnitSettings;
+
+    [SerializeField] 
+    private UnitDisplay Display;
     
     [field: SerializeField]
     public UnityEvent OnSelect { get; set; }
@@ -14,15 +18,17 @@ public class UnitObject : MonoBehaviour, IGridUnit
     public IGridCell Cell { get; private set; }
     public int MoveRange => UnitSettings.MoveRange;
     public int AttackRange => UnitSettings.AttackRange;
-    private bool Friendly;
+    private UnitSpawnType UnitType;
 
-    public bool ValidForSelection => Friendly;
-    
+    public bool ValidForSelection => UnitType == UnitSpawnType.Friendly;
+    public bool ValidForAttack => UnitType == UnitSpawnType.Enemy;
+
     public void Initialize(UnitSpawnType unitType)
     {
-        Friendly = unitType == UnitSpawnType.Friendly;
+        UnitType = unitType;
+        Display.SetUnitColor(UnitSettings.GetUnitTint(UnitType));
     }
-    
+
     public void AssignCell(IGridCell gridCell)
     {
         if (Cell == gridCell) return;

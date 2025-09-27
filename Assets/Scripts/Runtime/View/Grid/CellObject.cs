@@ -30,8 +30,7 @@ public class CellObject : MonoBehaviour, IHoverable, ITouchable, IGridCell
         PathfindingData = new CellPathfindingData();
         PathfindingData.OnDataUpdate += UpdateVisuals;
 
-        Display.SetSize(cellSettings.CellSize);
-        Display.SetCellType(cellType);
+        Display.SetSettings(cellSettings, cellType);
     }
 
     public bool TryGetNeighbor(CellDirection direction, out IGridCell cell)
@@ -58,11 +57,12 @@ public class CellObject : MonoBehaviour, IHoverable, ITouchable, IGridCell
         Unit = gridUnit;
         Unit?.AssignCell(this);
     }
-
-    public void UpdateVisuals() => Display.UpdateDisplay(PathfindingData);
+    
     public void Touch() => OnTouch?.Invoke();
     public void PointerHover() => OnMouseEnter?.Invoke();
     public void PointerLeave() => OnMouseExit?.Invoke();
+    
+    private void UpdateVisuals() => Display.UpdateDisplay(PathfindingData);
 
     public void Destroy()
     {

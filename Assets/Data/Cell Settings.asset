@@ -12,4 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93cb52c4cd7cc064b95bc40e3854b63f, type: 3}
   m_Name: Cell Settings
   m_EditorClassIdentifier: 
-  _CellSize: 1.25
+  <CellSize>k__BackingField: 1
+  <TraversableColor>k__BackingField: {r: 0, g: 1, b: 0, a: 0.4}
+  <ObstacleColor>k__BackingField: {r: 1, g: 0, b: 0, a: 0.4}
+  <CoverColor>k__BackingField: {r: 0, g: 0, b: 1, a: 0.4}
+  <RangeHighlightColor>k__BackingField: {r: 1, g: 0.5, b: 0, a: 1}
+  <MovementHighlightColor>k__BackingField: {r: 0, g: 0.5, b: 1, a: 1}
+  <AttackHighlightColor>k__BackingField: {r: 0.8, g: 0.2, b: 0.2, a: 1}

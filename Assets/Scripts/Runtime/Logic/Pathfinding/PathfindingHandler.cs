@@ -4,64 +4,163 @@ using UnityEngine;
 
 public class PathfindingHandler
 {
-    private readonly HashSet<IGridCell> BFS_VisitedCells = new();
+    private readonly HashSet<IGridCell> BFS_CellsInMovementRange = new();
+    private readonly HashSet<IGridCell> BFS_CellsInAttackRange = new();
     private readonly HashSet<IGridCell> AStart_VisitedCells = new();
 
-    public bool HaveRange { get; private set; }
-    public bool HavePath { get; private set; }
+    private readonly SortedSet<IGridCell> ReachableAttackCells = new(Comparer<IGridCell>.Create(EvaluateAttackPosition));
+
+    public readonly List<IGridCell> MovementPath = new();
+    public readonly HashSet<IGridCell> AttackPath = new();
+
+    public bool HaveMovementPath { get; private set; }
+    public bool HaveAttackPath { get; private set; }
+
+    private bool HaveRangeData;
+    private bool HavePathData;
+    private bool HaveAttackData;
+
+    public void ClearSelection()
+    {
+        ClearRange();
+        ClearHoover();
+    }
+    public void ClearHoover()
+    {
+        ClearMovePath();
+        ClearAttackPath();
+    }
 
     public void ShowRange(IGridCell selectedCell)
     {
-        if (HaveRange) ClearRange();
-            
+        if (HaveRangeData) ClearRange();
+
         GetMovementRange_BFS(selectedCell);
-        HaveRange = true;
+        HaveRangeData = true;
     }
     public void ClearRange()
     {
-        if (!HaveRange) return;
-        
-        foreach (var cells in BFS_VisitedCells)
+        if (!HaveRangeData) return;
+
+        foreach (var cells in BFS_CellsInMovementRange)
         {
             cells.PathfindingData.ClearRangeData();
         }
-        BFS_VisitedCells.Clear();
-        HaveRange = false;
+
+        BFS_CellsInMovementRange.Clear();
+        HaveRangeData = false;
     }
-    
+
     public void ShowMovePath(IGridCell selectedCell, IGridCell hoveredCell)
     {
-        if (HavePath) ClearMovePath();
-        
+        if (HavePathData) ClearMovePath();
+
         FindPath_AStar(selectedCell, hoveredCell);
-        HavePath = true;
-    }
-    public void ShowAttackPath(IGridCell selectedCell, IGridCell targetCell)
-    {
+        ReconstructPath();
+        HavePathData = true;
+        
+        void ReconstructPath()
+        {
+            while (hoveredCell != null)
+            {
+                if (hoveredCell.PathfindingData.MovementData.Distance <= selectedCell.Unit.MoveRange)
+                {
+                    hoveredCell.PathfindingData.IsMovementPath = true;
+                    MovementPath.Add(hoveredCell);
+                }
+
+                hoveredCell = hoveredCell.PathfindingData.MovementData.Previous;
+            }
+            MovementPath.Reverse();
+        }
     }
     public void ClearMovePath()
     {
-        if (!HavePath) return;
-        
+        if (!HavePathData) return;
+
         foreach (var cells in AStart_VisitedCells)
         {
             cells.PathfindingData.ClearMovementData();
         }
+
         AStart_VisitedCells.Clear();
-        HavePath = false;
+        MovementPath.Clear();
+        HavePathData = false;
+        HaveMovementPath = false;
     }
-    
+
+    public void ShowAttackPath(IGridCell selectedCell, IGridCell targetCell)
+    {
+        if (HaveAttackData) ClearAttackPath();
+
+        int bendPrevention = Mathf.Min(2, selectedCell.Unit.AttackRange);
+
+        /*if (targetCell.PathfindingData.Distance <= bendPrevention ||
+            EuclideanDistance(selectedCell, targetCell) <= bendPrevention)
+        {
+            //GetAttackPath selectedCell -> targetCell
+            return;
+        }*/
+
+        GetAttackRange_BFS(targetCell, selectedCell);
+        FindPathAttackPotion();
+        HaveAttackData = true;
+
+        return;
+        void FindPathAttackPotion()
+        {
+            HashSet<IGridCell> path = new HashSet<IGridCell>();
+            foreach (var cell in ReachableAttackCells)
+            {
+                if (!FindLine_BresenhamsLine(cell, targetCell, ref path))
+                {
+                    path.Clear();
+                    continue;
+                }
+
+                path.Add(targetCell);
+                foreach (var pathCell in path)
+                {
+                    pathCell.PathfindingData.IsAttack = true;
+                    BFS_CellsInAttackRange.Add(pathCell);
+                    AttackPath.Add(pathCell);
+                }
+
+                if (cell != selectedCell)
+                {
+                    ShowMovePath(selectedCell, cell);
+                }
+                return;
+            }
+        }
+    }
+    public void ClearAttackPath()
+    {
+        if (!HaveAttackData) return;
+
+        foreach (var cells in BFS_CellsInAttackRange)
+        {
+            cells.PathfindingData.ClearAttackData();
+        }
+
+        BFS_CellsInAttackRange.Clear();
+        ReachableAttackCells.Clear();
+        AttackPath.Clear();
+        HaveAttackData = false;
+        HaveAttackPath = false;
+    }
+
     private void GetMovementRange_BFS(IGridCell startCell)
     {
         Queue<IGridCell> frontier = new Queue<IGridCell>();
         frontier.Enqueue(startCell);
-        BFS_VisitedCells.Add(startCell);
-        
+        BFS_CellsInMovementRange.Add(startCell);
+
         while (frontier.Count > 0)
         {
             IGridCell current = frontier.Dequeue();
-            if(current.PathfindingData.RangeData.Distance >= startCell.Unit.MoveRange) continue;
-            
+            if (current.PathfindingData.RangeData.Distance >= startCell.Unit.MoveRange) continue;
+
             foreach (CellDirection direction in Enum.GetValues(typeof(CellDirection)))
             {
                 CheckNeighbors(current, direction);
@@ -72,7 +171,7 @@ public class PathfindingHandler
         void CheckNeighbors(IGridCell current, CellDirection direction)
         {
             if (!current.TryGetNeighbor(direction, out var neighbor) ||
-                BFS_VisitedCells.Contains(neighbor) ||
+                BFS_CellsInMovementRange.Contains(neighbor) ||
                 neighbor.CellType != CellType.Traversable ||
                 neighbor.Occupied) return;
 
@@ -80,10 +179,44 @@ public class PathfindingHandler
             neighbor.PathfindingData.IsRange = true;
 
             frontier.Enqueue(neighbor);
-            BFS_VisitedCells.Add(neighbor);
+            BFS_CellsInMovementRange.Add(neighbor);
         }
     }
+    private void GetAttackRange_BFS(IGridCell enemyCell, IGridCell friendlyCell)
+    {
+        Queue<IGridCell> frontier = new Queue<IGridCell>();
+        frontier.Enqueue(enemyCell);
+        BFS_CellsInAttackRange.Add(enemyCell);
 
+        while (frontier.Count > 0)
+        {
+            IGridCell current = frontier.Dequeue();
+            if (current.PathfindingData.AttackData.Distance >= enemyCell.Unit.AttackRange) continue;
+
+            foreach (CellDirection direction in Enum.GetValues(typeof(CellDirection)))
+            {
+                CheckNeighbors(current, direction);
+            }
+        }
+        return;
+
+        void CheckNeighbors(IGridCell current, CellDirection direction)
+        {
+            if (!current.TryGetNeighbor(direction, out var neighbor) ||
+                BFS_CellsInAttackRange.Contains(neighbor) ||
+                neighbor.CellType == CellType.Obstacle ||
+                (neighbor.Occupied && neighbor != friendlyCell)) return;
+
+            neighbor.PathfindingData.AttackData.Distance = current.PathfindingData.AttackData.Distance + 1;
+            if (BFS_CellsInMovementRange.Contains(neighbor))
+            {
+                ReachableAttackCells.Add(neighbor);
+            }
+
+            frontier.Enqueue(neighbor);
+            BFS_CellsInAttackRange.Add(neighbor);
+        }
+    }
     private void FindPath_AStar(IGridCell startCell, IGridCell endCell)
     {
         var frontier = new PriorityQueue<IGridCell>();
@@ -91,15 +224,11 @@ public class PathfindingHandler
         startCell.PathfindingData.MovementData.Estimation = EuclideanDistance(startCell, endCell);
         frontier.Enqueue(startCell, startCell.PathfindingData.MovementData.Estimation);
         AStart_VisitedCells.Add(startCell);
-        
+
         while (frontier.Count > 0)
         {
             IGridCell current = frontier.Dequeue();
-            if (current == endCell)
-            {
-                ReconstructPath(current);
-                return;
-            }
+            if (current == endCell) return;
 
             foreach (CellDirection direction in Enum.GetValues(typeof(CellDirection)))
             {
@@ -107,7 +236,7 @@ public class PathfindingHandler
             }
         }
         return;
-        
+
         void CheckNeighbours(IGridCell current, CellDirection direction)
         {
             if (!current.TryGetNeighbor(direction, out var neighbor) ||
@@ -117,7 +246,7 @@ public class PathfindingHandler
 
             int tentativeG = current.PathfindingData.MovementData.Distance + 1;
             if (tentativeG >= neighbor.PathfindingData.MovementData.Distance) return;
-            
+
             neighbor.PathfindingData.MovementData.Previous = current;
             neighbor.PathfindingData.MovementData.Distance = tentativeG;
             neighbor.PathfindingData.MovementData.Estimation = tentativeG + EuclideanDistance(neighbor, endCell);
@@ -125,67 +254,14 @@ public class PathfindingHandler
             if (frontier.Contains(neighbor))
             {
                 frontier.UpdatePriority(neighbor, neighbor.PathfindingData.MovementData.Estimation);
+                return;
             }
-            else
-            {
-                frontier.Enqueue(neighbor, neighbor.PathfindingData.MovementData.Estimation);
-                AStart_VisitedCells.Add(neighbor);
-            }
-        }
-        void ReconstructPath(IGridCell current)
-        {
-            while (current != null)
-            {
-                if (current.PathfindingData.MovementData.Distance <= startCell.Unit.MoveRange)
-                {
-                    current.PathfindingData.IsMovementPath = true;
-                }
 
-                current = current.PathfindingData.MovementData.Previous;
-            }
+            frontier.Enqueue(neighbor, neighbor.PathfindingData.MovementData.Estimation);
+            AStart_VisitedCells.Add(neighbor);
         }
     }
-
-    private int EuclideanDistance(IGridCell startCell, IGridCell endCell)
-    {
-        int dx = Mathf.Abs(startCell.CellCoordinates.x - endCell.CellCoordinates.x);
-        int dy = Mathf.Abs(startCell.CellCoordinates.y - endCell.CellCoordinates.y);
-        return dx + dy;
-    }
-
-    /*private void CalculateMovementRange(CellObject startCell)
-    {
-
-    }
-    private void CalculateAttackRange(CellObject startCell)
-    {
-        for (int i = 0; i < Cells.Length; i++)
-        {
-            Cells[i].AttackDistance = startCell.DistanceTo(Cells[i]);
-        }
-    }
-    private void ValidateAttackPositions()
-    {
-        for (int i = 0; i < Cells.Length; i++)
-        {
-            Cells[i].CanAttack = false;
-
-            if (Cells[i].AttackDistance > 10 ||
-                Cells[i].MovementDistance > 6) continue;
-
-            HashSet<CellObject> line = new();
-            if(HaveCleanLineOfSight(Cells[i], EnemyCell, ref line))
-            {
-                Cells[i].CanAttack = true;
-                foreach (var cell in line)
-                {
-                    cell.AttackPath = true;
-                }
-            }
-        }
-    }
-
-    private bool HaveCleanLineOfSight(CellObject startCell, CellObject targetCell, ref HashSet<CellObject> line)
+    private bool FindLine_BresenhamsLine(IGridCell startCell, IGridCell targetCell, ref HashSet<IGridCell> line)
     {
         if (startCell.Equals(targetCell)) return false;
 
@@ -194,7 +270,7 @@ public class PathfindingHandler
         int x1 = targetCell.CellCoordinates.x;
         int y1 = targetCell.CellCoordinates.y;
 
-        CellObject currentCell = startCell;
+        IGridCell currentCell = startCell;
 
         bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
 
@@ -203,16 +279,16 @@ public class PathfindingHandler
 
         if (steep)
         {
-            Swap(ref x0, ref y0);
-            Swap(ref x1, ref y1);
-            Swap(ref ProgressDirection, ref StepDirection);
-
+            (x0, y0) = (y0, x0);
+            (x1, y1) = (y1, x1);
+            (ProgressDirection, StepDirection) = (StepDirection, ProgressDirection);
         }
+
         if (x0 > x1)
         {
-            Swap(ref x0, ref x1);
-            Swap(ref y0, ref y1);
-            Swap(ref currentCell, ref targetCell);
+            (x0, x1) = (x1, x0);
+            (y0, y1) = (y1, y0);
+            (currentCell, targetCell) = (targetCell, currentCell);
         }
 
         int dX = (x1 - x0);
@@ -220,61 +296,91 @@ public class PathfindingHandler
 
         int err = (dX / 2);
         int ystep = (y0 < y1 ? 1 : -1);
-        if(ystep<0) StepDirection = StepDirection.Opposite();
+        if (ystep < 0) StepDirection = StepDirection.Opposite();
         int y = y0;
+        bool foundBresenhamsLine = false;
 
-        for (int x = x0; x < x1; ++x)
+        int x = x0;
+        for (; x < x1; ++x)
         {
-            if (currentCell.CellType == CellType.Obstacle) return false;
-
-            err -= dY;
-            if (err < 0)
+            bool finished = StepX(ref line);
+            if (finished)
             {
-                y += ystep;
-                err += dX;
-
-                currentCell = currentCell.GetNeighbor(StepDirection);
-                if (currentCell.Equals(targetCell)) return true;
-                line.Add(currentCell);
-
-                //Uncomment to allow corner traversing for Line of Sight
-                //if (currentCell.CellType == CellType.Obstacle) return false;
+                return foundBresenhamsLine;
             }
-
-            currentCell = currentCell.GetNeighbor(ProgressDirection);
-            line.Add(currentCell);
         }
-
         return true;
 
-        void Swap<T>(ref T lhs, ref T rhs)
+        bool StepX(ref HashSet<IGridCell> line)
         {
-            T temp;
-            temp = lhs;
-            lhs = rhs;
-            rhs = temp;
+            if (currentCell.CellType == CellType.Obstacle)
+            {
+                foundBresenhamsLine = false;
+                return true;
+            }
+
+            if (x != x0) line.Add(currentCell);
+
+            err -= dY;
+            bool finished = StepY(ref line);
+            if (finished)
+            {
+                return true;
+            }
+
+            if (!currentCell.TryGetNeighbor(ProgressDirection, out currentCell))
+            {
+                Debug.LogError($"Null neighbour encountered when moving {ProgressDirection}", (UnityEngine.Object)currentCell);
+                throw new NullReferenceException();
+            }
+
+            return false;
+        }
+        bool StepY(ref HashSet<IGridCell> line)
+        {
+            if (err >= 0) return false;
+            
+            y += ystep;
+            err += dX;
+
+            if (!currentCell.TryGetNeighbor(StepDirection, out currentCell))
+            {
+                Debug.LogError($"Null neighbour encountered when moving {StepDirection}", (UnityEngine.Object)currentCell);
+                throw new NullReferenceException();
+            }
+
+            if (currentCell.Equals(targetCell))
+            {
+                foundBresenhamsLine = true;
+                return true;
+            }
+
+            if (currentCell.CellType == CellType.Obstacle)
+            {
+                foundBresenhamsLine = false;
+                return true;
+            }
+
+            line.Add(currentCell);
+            return false;
         }
     }
-
-    private void CalculateAttackRange(CellObject startCell, params CellDirection[] directions)
+    private int EuclideanDistance(IGridCell startCell, IGridCell endCell)
     {
-        Queue<CellObject> frontier = new Queue<CellObject>();
-        startCell.AttackDistance = 0;
-        frontier.Enqueue(startCell);
-        while (frontier.Count > 0)
-        {
-            CellObject current = frontier.Dequeue();
-            if(current.AttackDistance >= 10) continue;
+        int dx = Mathf.Abs(startCell.CellCoordinates.x - endCell.CellCoordinates.x);
+        int dy = Mathf.Abs(startCell.CellCoordinates.y - endCell.CellCoordinates.y);
+        return dx + dy;
+    }
+    private static int EvaluateAttackPosition(IGridCell x, IGridCell y)
+    {
+        if (ReferenceEquals(x, y)) return 0;
+        if (x == null) return -1;
+        if (y == null) return 1;
 
-            foreach (var direction in directions)
-            {
-                CellObject neighbor = current.GetNeighbor(direction);
-                if (neighbor == null ||
-                    neighbor.CellType == CellType.Obstacle) continue;
-
-                neighbor.AttackDistance = current.AttackDistance + 1;
-                frontier.Enqueue(neighbor);
-            }
-        }
-    }*/
+        int rangeCompare = x.PathfindingData.RangeData.Distance.CompareTo(y.PathfindingData.RangeData.Distance);
+        if (rangeCompare != 0) return rangeCompare;
+        int attackCompare = x.PathfindingData.AttackData.Distance.CompareTo(y.PathfindingData.AttackData.Distance);
+        if (attackCompare != 0) return attackCompare;
+        return x.GetHashCode().CompareTo(y.GetHashCode());
+    }
 }

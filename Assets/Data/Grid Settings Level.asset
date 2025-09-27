@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2570b549463ee4145ad5da8ac195a8c0, type: 3}
-  m_Name: Grid Settings
+  m_Name: Grid Settings Level
   m_EditorClassIdentifier: 
   _CellSettings: {fileID: 11400000, guid: af13858663cd5e74786106c03567533b, type: 2}
   _GridWidth: 20

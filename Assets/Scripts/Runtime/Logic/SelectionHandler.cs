@@ -59,26 +59,30 @@ public class SelectionHandler
         if (HoveredCell != null)
         {
             HoveredCell.PointerLeave();
-            PathfindingHandler.ClearMovePath();
+            PathfindingHandler.ClearHoover();
         }
 
         HoveredCell = entity;
 
-        if (HoveredCell != null)
+        if (HoveredCell == null) return;
+        
+        HoveredCell.PointerHover();
+        if (SelectedCell == null ||
+            HoveredCell is not IGridCell targetCell) return;
+        
+        if (!targetCell.Occupied)
         {
-            HoveredCell.PointerHover();
-            if (SelectedCell != null &&
-                HoveredCell is IGridCell targetCell)
-            {
-                if (targetCell.Occupied && !targetCell.Unit.ValidForSelection)
-                {
-                    PathfindingHandler.ShowAttackPath(SelectedCell, targetCell);
-                }
-                else
-                {
-                    PathfindingHandler.ShowMovePath(SelectedCell, targetCell);
-                }
-            }
+            PathfindingHandler.ClearAttackPath();
+            PathfindingHandler.ShowMovePath(SelectedCell, targetCell);
+        }
+        else if(targetCell.Unit.ValidForAttack)
+        {
+            PathfindingHandler.ClearMovePath();
+            PathfindingHandler.ShowAttackPath(SelectedCell, targetCell);
+        }
+        else
+        {
+            PathfindingHandler.ClearHoover();
         }
     }
 
@@ -93,7 +97,7 @@ public class SelectionHandler
             {
                 SelectedCell.Unit.Deselect();
             }
-            PathfindingHandler.ClearRange();
+            PathfindingHandler.ClearSelection();
         }
         
         SelectedCell = entity;

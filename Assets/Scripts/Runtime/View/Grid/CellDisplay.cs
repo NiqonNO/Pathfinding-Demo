@@ -15,8 +15,17 @@ public class CellDisplay : MonoBehaviour
     private Image Fill;
     [SerializeField] 
     private Image Outline;
-    
-    public void SetSize(float cellSize)
+
+    private CellSettings CellSettings;
+
+    public void SetSettings(CellSettings cellSettings, CellType cellType)
+    {
+        CellSettings = cellSettings;
+        SetSize(CellSettings.CellSize);
+        SetCellType(cellType);
+    }
+
+    private void SetSize(float cellSize)
     {
         Vector3 canvasSize = Canvas.sizeDelta;
         canvasSize.x = cellSize;
@@ -29,15 +38,9 @@ public class CellDisplay : MonoBehaviour
         Geometry.localScale = geometryScale;
     }
 
-    public void SetCellType(CellType cellType)
+    private void SetCellType(CellType cellType)
     {
-        Fill.color = cellType switch
-        {
-            CellType.Traversable => Color.green,
-            CellType.Obstacle => Color.red,
-            CellType.Cover => Color.blue,
-            _ => Fill.color
-        };
+        Fill.color = CellSettings.GetFillColor(cellType);
     }
 
     public void UpdateDisplay(CellPathfindingData data)
@@ -46,12 +49,12 @@ public class CellDisplay : MonoBehaviour
         Label.text = string.Empty;
         if (data.IsAttack)
         {
-            Outline.color = Color.red;
+            Outline.color = CellSettings.AttackHighlightColor;
         }
         else if (data.IsRange || data.IsMovementPath)
         {
             Label.text = data.Distance.ToString();
-            Outline.color = data.IsMovementPath ? Color.blue : Color.yellow;
+            Outline.color = data.IsMovementPath ? CellSettings.MovementHighlightColor : CellSettings.RangeHighlightColor;
         }
     }
 }
