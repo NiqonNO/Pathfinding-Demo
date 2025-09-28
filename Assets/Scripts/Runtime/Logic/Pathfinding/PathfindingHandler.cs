@@ -13,6 +13,9 @@ public class PathfindingHandler
     public bool HaveMovementPath => MovementPathHandler.HaveValidPath;
     public bool HaveAttackPath => AttackRangeHandler.HaveValidAttackPoint;
 
+    public bool OutOfRange { get; private set; }
+    public bool Unreachable { get; private set; }
+
     public PathfindingHandler()
     {
         MovementRangeHandler = new BSFHandler_MovementRange();
@@ -32,13 +35,20 @@ public class PathfindingHandler
     public void ShowMovePath(IGridCell selectedCell, IGridCell targetCell)
     {
         MovementPathHandler.FindPath_AStar(selectedCell, targetCell);
-        if (!MovementPathHandler.FoundPath) return;
+        if (!MovementPathHandler.FoundPath)
+        {
+            Unreachable = true;
+            return;
+        }
         
         MovementPathHandler.ReconstructPath(targetCell, selectedCell.Unit.MoveRange);
+        OutOfRange = MovementPathHandler.OutOfRange;
     }
     public void ClearMovePath()
     {
         MovementPathHandler.ClearData();
+        Unreachable = false;
+        OutOfRange = false;
     }
     
     public void ShowAttackPath(IGridCell selectedCell, IGridCell targetCell)
@@ -59,7 +69,10 @@ public class PathfindingHandler
         if (AttackRangeHandler.FoundAttackPosition)
         {
             MovementPathHandler.ReconstructPath(AttackRangeHandler.AttackPosition, selectedCell.Unit.MoveRange);
+            OutOfRange = MovementPathHandler.OutOfRange;
+            return;
         }
+        Unreachable = true;
     }
     public void ClearAttackPath()
     {

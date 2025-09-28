@@ -10,6 +10,7 @@ public class AStarHandler
     public List<IGridCell> Path { get; private set; } = new();
     public bool FoundPath { get; private set; }
     public bool HaveValidPath { get; private set; }
+    public bool OutOfRange { get; private set; }
 
     private bool HaveData;
     
@@ -79,6 +80,7 @@ public class AStarHandler
         HaveData = false;
         FoundPath = false;
         HaveValidPath = false;
+        OutOfRange = false;
     }
     
     public void ReconstructPath(IGridCell endCell, int range = int.MaxValue)
@@ -93,6 +95,7 @@ public class AStarHandler
             else
             {
                 current.PathfindingData.MovePathData.IsOutOfRange = true;
+                OutOfRange = true;
             }
             current.PathfindingData.IsMovementPath = true;
             current = current.PathfindingData.MovePathData.Previous;

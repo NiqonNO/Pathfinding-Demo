@@ -2,6 +2,9 @@
 
 public class SelectionHandler
 {
+    private readonly Message OutOfRangeMessage = new ("Target Out Of Range");
+    private readonly Message UnreachableMessage = new ("Target Unreachable");
+    
     private readonly PathfindingHandler PathfindingHandler = new();
     
     private IGridCell SelectedCell;
@@ -68,26 +71,38 @@ public class SelectionHandler
 
         HoveredCell = entity;
 
-        if (HoveredCell == null) return;
-        
+        if (HoveredCell == null)
+        {
+            MessagingHandler.ClearMessage();
+            return;
+        }
+
         HoveredCell.PointerHover();
         if (SelectedCell == null ||
-            HoveredCell is not IGridCell targetCell) return;
-        
+            HoveredCell is not IGridCell targetCell)
+        {
+            MessagingHandler.ClearMessage();
+            return;
+        }
+
         if (!targetCell.Occupied)
         {
             PathfindingHandler.ClearAttackPath();
             PathfindingHandler.ShowMovePath(SelectedCell, targetCell);
+            HandleMessageDisplay();
+            return;
         }
-        else if(targetCell.Unit.ValidForAttack)
+        
+        if (targetCell.Unit.ValidForAttack)
         {
             PathfindingHandler.ClearMovePath();
             PathfindingHandler.ShowAttackPath(SelectedCell, targetCell);
+            HandleMessageDisplay();
+            return;
         }
-        else
-        {
-            PathfindingHandler.ClearHoover();
-        }
+        
+        PathfindingHandler.ClearHoover();
+        MessagingHandler.ClearMessage();
     }
 
     public void DeselectCurrent() => SelectCell(null);
@@ -114,5 +129,24 @@ public class SelectionHandler
             }
             PathfindingHandler.ShowRange(SelectedCell);
         }
+    }
+    
+    private void HandleMessageDisplay()
+    {
+        if (PathfindingHandler.Unreachable)
+        {
+            if (UnreachableMessage.Active) return;
+            MessagingHandler.DisplayMessage(UnreachableMessage);
+            return;
+        }
+        
+        if (PathfindingHandler.OutOfRange)
+        {
+            if (OutOfRangeMessage.Active) return;
+            MessagingHandler.DisplayMessage(OutOfRangeMessage);
+            return;
+        }
+        
+        MessagingHandler.ClearMessage();
     }
 }
