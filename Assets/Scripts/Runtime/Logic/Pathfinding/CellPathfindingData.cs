@@ -1,77 +1,111 @@
 ﻿using System;
+using UnityEngine;
 
 public class CellPathfindingData
 {
     public event Action OnDataUpdate;
 
-    public RangePathfinding RangeData { get; private set; } = new();
-    public MovementPathfinding MovementData { get; private set; } = new();
-    public AttackPathfinding AttackData { get; private set; } = new();
+    public RangeData MoveRangeData { get; private set; } = new();
+    public PathData MovePathData { get; private set; } = new();
+    public RangeData AttackRangeData { get; private set; } = new();
 
     public bool IsRange
     {
-        get => RangeData is { Active: true };
+        get => MoveRangeData is { Active: true };
         set
         {
-            RangeData.Active = true;
+            MoveRangeData.Active = true;
             OnDataUpdate?.Invoke();
         }
     }
-
     public bool IsMovementPath
     {
-        get => MovementData is { Active: true };
+        get => MovePathData is { Active: true };
         set
         {
-            MovementData.Active = true;
+            MovePathData.Active = true;
             OnDataUpdate?.Invoke();
         }
     }
-
     public bool IsAttack
     {
-        get => AttackData is { Active: true };
+        get => AttackRangeData is { Active: true };
         set
         {
-            AttackData.Active = true;
+            AttackRangeData.Active = true;
             OnDataUpdate?.Invoke();
         }
     }
 
-    public int Distance => IsMovementPath ? MovementData.Distance : IsRange ? RangeData.Distance : 0;
-    
+    public int Distance => MovePathData.Visited ? MovePathData.Distance : MoveRangeData.Distance;
+
     public void ClearRangeData() 
     {
-        RangeData = new RangePathfinding();
+        MoveRangeData.Clear();
         OnDataUpdate?.Invoke();
     }
     public void ClearMovementData()
     {
-        MovementData = new MovementPathfinding();
+        MovePathData.Clear();
         OnDataUpdate?.Invoke();
     }
     public void ClearAttackData()
     {
-        AttackData = new AttackPathfinding();
+        AttackRangeData.Clear();
         OnDataUpdate?.Invoke();
     }
-}
 
-public class RangePathfinding
+    public void SetDistance(RangePathfindingType type, int distance)
+    {
+        switch (type)
+        {
+            case RangePathfindingType.Move:
+                MoveRangeData.Distance = distance;
+                break;
+            case RangePathfindingType.Attack:
+                AttackRangeData.Distance = distance;
+                break;
+            default:
+                return;
+        }
+    }
+    public int GetDistance(RangePathfindingType type)
+    {
+        return type switch
+        {
+            RangePathfindingType.Move => MoveRangeData.Distance,
+            RangePathfindingType.Attack => AttackRangeData.Distance,
+            _ => int.MaxValue
+        };
+    }
+}
+public class RangeData
 {
     public bool Active { get; set; } = false;
     public int Distance { get; set; } = 0;
+
+    public void Clear()
+    {
+        Active = false;
+        Distance = 0;
+    }
 }
-public class MovementPathfinding
+public class PathData
 {
     public bool Active { get; set; } = false;
+    public bool Visited { get; set; } = false;
+    public bool IsOutOfRange { get; set; } = false;
     public int Distance { get; set; } = int.MaxValue;
     public int Estimation { get; set; } = int.MaxValue;
     public IGridCell Previous { get; set; } = null;
-}
-
-public class AttackPathfinding
-{
-    public bool Active { get; set; } = false;
-    public int Distance { get; set; } = 0;
+    
+    public void Clear()
+    {
+        Active = false;
+        Visited = false;
+        IsOutOfRange = false;
+        Distance = int.MaxValue;
+        Estimation = int.MaxValue;
+        Previous = null;
+    }
 }

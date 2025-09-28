@@ -3,49 +3,55 @@ using System.Collections.Generic;
 
 public class PriorityQueue<T>
 {
-    private readonly List<(T item, float priority)> _heap = new();
-    private readonly Dictionary<T, int> _positions = new();
+    private readonly List<(T item, float priority)> Heap = new();
+    private readonly Dictionary<T, int> Positions = new();
 
-    public int Count => _heap.Count;
+    public int Count => Heap.Count;
 
-    public bool Contains(T item) => _positions.ContainsKey(item);
+    public bool Contains(T item) => Positions.ContainsKey(item);
 
     public void Enqueue(T item, float priority)
     {
-        _heap.Add((item, priority));
-        int index = _heap.Count - 1;
-        _positions[item] = index;
+        Heap.Add((item, priority));
+        int index = Heap.Count - 1;
+        Positions[item] = index;
         HeapifyUp(index);
     }
 
     public T Dequeue()
     {
-        if (_heap.Count == 0)
+        if (Heap.Count == 0)
             throw new InvalidOperationException("Queue is empty");
 
-        var root = _heap[0].item;
+        var root = Heap[0].item;
 
-        var last = _heap[^1];
-        _heap[0] = last;
-        _heap.RemoveAt(_heap.Count - 1);
-        _positions.Remove(root);
+        var last = Heap[^1];
+        Heap[0] = last;
+        Heap.RemoveAt(Heap.Count - 1);
+        Positions.Remove(root);
 
-        if (_heap.Count > 0)
+        if (Heap.Count > 0)
         {
-            _positions[last.item] = 0;
+            Positions[last.item] = 0;
             HeapifyDown(0);
         }
 
         return root;
     }
 
+    public void Clear()
+    {
+        Heap.Clear();
+        Positions.Clear();
+    }
+
     public void UpdatePriority(T item, float newPriority)
     {
-        if (!_positions.TryGetValue(item, out int index))
+        if (!Positions.TryGetValue(item, out int index))
             return;
 
-        float oldPriority = _heap[index].priority;
-        _heap[index] = (item, newPriority);
+        float oldPriority = Heap[index].priority;
+        Heap[index] = (item, newPriority);
 
         if (newPriority < oldPriority)
             HeapifyUp(index);
@@ -58,7 +64,7 @@ public class PriorityQueue<T>
         while (index > 0)
         {
             int parent = (index - 1) / 2;
-            if (_heap[index].priority >= _heap[parent].priority)
+            if (Heap[index].priority >= Heap[parent].priority)
                 break;
 
             Swap(index, parent);
@@ -68,16 +74,16 @@ public class PriorityQueue<T>
 
     private void HeapifyDown(int index)
     {
-        int count = _heap.Count;
+        int count = Heap.Count;
         while (true)
         {
             int left = 2 * index + 1;
             int right = left + 1;
             int smallest = index;
 
-            if (left < count && _heap[left].priority < _heap[smallest].priority)
+            if (left < count && Heap[left].priority < Heap[smallest].priority)
                 smallest = left;
-            if (right < count && _heap[right].priority < _heap[smallest].priority)
+            if (right < count && Heap[right].priority < Heap[smallest].priority)
                 smallest = right;
 
             if (smallest == index)
@@ -90,8 +96,8 @@ public class PriorityQueue<T>
 
     private void Swap(int a, int b)
     {
-        (_heap[a], _heap[b]) = (_heap[b], _heap[a]);
-        _positions[_heap[a].item] = a;
-        _positions[_heap[b].item] = b;
+        (Heap[a], Heap[b]) = (Heap[b], Heap[a]);
+        Positions[Heap[a].item] = a;
+        Positions[Heap[b].item] = b;
     }
 }
