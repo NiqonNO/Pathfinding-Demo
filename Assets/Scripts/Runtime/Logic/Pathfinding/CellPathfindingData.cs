@@ -5,9 +5,9 @@ public class CellPathfindingData
 {
     public event Action OnDataUpdate;
 
-    public RangeData MoveRangeData { get; private set; } = new();
-    public PathData MovePathData { get; private set; } = new();
-    public RangeData AttackRangeData { get; private set; } = new();
+    public DisplayData MoveRangeData { get; private set; } = new();
+    public DisplayData MovePathData { get; private set; } = new();
+    public DisplayData AttackRangeData { get; private set; } = new();
 
     public bool IsRange
     {
@@ -36,8 +36,20 @@ public class CellPathfindingData
             OnDataUpdate?.Invoke();
         }
     }
+    public bool IsVisibility
+    {
+        get => AttackRangeData is { Active: true };
+        set
+        {
+            AttackRangeData.Active = true;
+            OnDataUpdate?.Invoke();
+        }
+    }
 
-    public int Distance => MovePathData.Visited ? MovePathData.Distance : MoveRangeData.Distance;
+    public string Distance => 
+        MovePathData.Active ? MovePathData.DisplayText : 
+        MoveRangeData.Active ? MoveRangeData.DisplayText : 
+        AttackRangeData.DisplayText;
 
     public void ClearRangeData() 
     {
@@ -54,58 +66,23 @@ public class CellPathfindingData
         AttackRangeData.Clear();
         OnDataUpdate?.Invoke();
     }
-
-    public void SetDistance(RangePathfindingType type, int distance)
+    public void ClearVisibilityData()
     {
-        switch (type)
-        {
-            case RangePathfindingType.Move:
-                MoveRangeData.Distance = distance;
-                break;
-            case RangePathfindingType.Attack:
-                AttackRangeData.Distance = distance;
-                break;
-            default:
-                return;
-        }
+        AttackRangeData.Clear();
+        OnDataUpdate?.Invoke();
     }
-    public int GetDistance(RangePathfindingType type)
-    {
-        return type switch
-        {
-            RangePathfindingType.Move => MoveRangeData.Distance,
-            RangePathfindingType.Attack => AttackRangeData.Distance,
-            _ => int.MaxValue
-        };
-    }
-}
-public class RangeData
-{
-    public bool Active { get; set; } = false;
-    public int Distance { get; set; } = 0;
-
-    public void Clear()
-    {
-        Active = false;
-        Distance = 0;
-    }
-}
-public class PathData
-{
-    public bool Active { get; set; } = false;
-    public bool Visited { get; set; } = false;
-    public bool IsOutOfRange { get; set; } = false;
-    public int Distance { get; set; } = int.MaxValue;
-    public int Estimation { get; set; } = int.MaxValue;
-    public IGridCell Previous { get; set; } = null;
     
+}
+public class DisplayData
+{
+    public bool Active { get; set; } = false;
+    public string DisplayText { get; set; } = string.Empty;
+    public Color DisplayColor { get; set; } = Color.black;
+
     public void Clear()
     {
         Active = false;
-        Visited = false;
-        IsOutOfRange = false;
-        Distance = int.MaxValue;
-        Estimation = int.MaxValue;
-        Previous = null;
+        DisplayText = string.Empty;
+        DisplayColor = Color.black;
     }
 }

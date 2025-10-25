@@ -43,7 +43,7 @@ public class SelectionHandler
             SelectCell(cell);
             return;
         }
-        if (SelectedCell == null || SelectedCell is {Occupied: false}) return;
+        if (SelectedCell is null or {Occupied: false}) return;
         IGridUnit unit = SelectedCell.Unit;
         
         if (PathfindingHandler.HaveMovementPath)

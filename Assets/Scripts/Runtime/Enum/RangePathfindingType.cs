@@ -1,1 +1,0 @@
-﻿public enum RangePathfindingType { Move = 0, Attack = 1 }

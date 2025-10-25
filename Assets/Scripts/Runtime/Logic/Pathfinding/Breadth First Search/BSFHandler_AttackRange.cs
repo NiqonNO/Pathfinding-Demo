@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-public class BSFHandler_AttackRange : BFSHandler
+public class BSFHandler_AttackRange //: BFSHandler
 {
-    private readonly BSFHandler_MovementRange MovementRangeHandler;
+    /*private readonly BSFHandler_MovementRange MovementRangeHandler;
     private readonly BresenhamsLineHandler AttackPathHandler;
     private readonly SortedSet<IGridCell> ReachableAttackCells = new(Comparer<IGridCell>.Create(EvaluateAttackPosition));
 
@@ -94,5 +94,5 @@ public class BSFHandler_AttackRange : BFSHandler
         int attackCompare = x.PathfindingData.AttackRangeData.Distance.CompareTo(y.PathfindingData.AttackRangeData.Distance);
         if (attackCompare != 0) return attackCompare;
         return x.GetHashCode().CompareTo(y.GetHashCode());
-    }
+    }*/
 }

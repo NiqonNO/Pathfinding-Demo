@@ -1097,7 +1097,6 @@ MonoBehaviour:
   GridController: {fileID: 1671233981}
   CameraController: {fileID: 1488252580}
   InteractionController: {fileID: 833179357}
-  TooltipController: {fileID: 0}
 --- !u!4 &1342685881
 Transform:
   m_ObjectHideFlags: 0

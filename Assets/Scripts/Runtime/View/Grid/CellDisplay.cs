@@ -49,24 +49,23 @@ public class CellDisplay : MonoBehaviour
         Label.text = string.Empty;
         Label.color = Color.black;
 
-        if (data.IsAttack)
+        if (data.IsVisibility)
         {
             Outline.color = CellSettings.AttackHighlightColor;
-            Label.text = (data.AttackRangeData.Distance + 1).ToString();
+            Label.text = data.AttackRangeData.DisplayText;
+            Label.color = data.AttackRangeData.DisplayColor;
         }
         else if (data.IsMovementPath)
         {
             Outline.color = CellSettings.MovementHighlightColor;
-            Label.text = data.MovePathData.Distance.ToString();
-            if (data.MovePathData.IsOutOfRange)
-            {
-                Label.color = Color.red;
-            }
+            Label.text = data.MovePathData.DisplayText;
+            Label.color = data.MovePathData.DisplayColor;
         }
         else if (data.IsRange)
         {
             Outline.color = CellSettings.RangeHighlightColor;
-            Label.text = data.MoveRangeData.Distance.ToString();
+            Label.text = data.MoveRangeData.DisplayText;
+            Label.color = data.MoveRangeData.DisplayColor;
         }
     }
 }
