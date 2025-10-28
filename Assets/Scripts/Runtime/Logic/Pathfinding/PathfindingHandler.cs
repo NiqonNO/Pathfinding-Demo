@@ -1,43 +1,105 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using UnityEngine;
 
 public class PathfindingHandler
 {
-    private readonly MovementHandler MovementHandler;
-    private readonly AttackHandler AttackHandler;
+    private readonly Message OutOfRangeMessage = new ("Target Out Of Range");
+    private readonly Message UnreachableMessage = new ("Target Unreachable");
+    
+    private readonly MovementHandler MovementHandler = new();
+    private readonly AttackHandler AttackHandler = new();
     
     public bool OutOfRange { get; private set; }
     public bool Unreachable { get; private set; }
-    
-    public List<IGridCell> MovementPath => MovementHandler.Path;
-    public bool HaveMovementPath => MovementHandler.HavePath;
-    
-    public HashSet<IGridCell> AttackPath => AttackHandler.Path;
-    public bool HaveAttackPath => AttackHandler.HavePath;
 
-    public PathfindingHandler()
+    private IGridCell OriginCell;
+    private IGridUnit OriginCellUnit => OriginCell.Unit;
+    private CellData CellData => OriginCell.Data;
+    private int MovementRange => OriginCellUnit.MoveRange;
+    private int AttackRange => OriginCellUnit.AttackRange;
+
+    public void HighlightCell(IGridCell cell)
     {
-        MovementHandler = new MovementHandler();
-        AttackHandler = new AttackHandler();
+        if (OriginCell == null) return;
+        ClearPath();
+        var cellData = cell?.Data;
+        if (cellData == null) return;
+
+        if (cell.Occupied &&
+            cell.Unit.ValidForAttack)
+        {
+            AttackHandler.ShowRange(cellData, AttackRange);
+            if(!AttackHandler.HaveAttackPosition)
+            {
+                /*MovementHandler.ShowPath(OriginCell, cell, MovementRange);
+                AttackHandler.CrossCheckCells();*/
+            }
+            if (!AttackHandler.HaveAttackPosition) return;
+            AttackHandler.ShowPath(AttackHandler.AttackPositionCell, cellData, AttackRange);
+            if (AttackHandler.AttackPositionCell == CellData) return;
+            HandleMessageDisplay();
+        }
+        else if (OriginCell == null) return;
+        {
+            MovementHandler.ShowPath(CellData, cellData, MovementRange);
+            HandleMessageDisplay();
+        }
     }
 
-    public void ShowRange(IGridCell selectedCell) => MovementHandler.ShowRange(selectedCell);
-    public void ClearRange()=> MovementHandler.ClearRange();
-    
-    public void ShowMovePath(IGridCell selectedCell, IGridCell targetCell) => MovementHandler.ShowPath(selectedCell, targetCell);
-    public void ClearMovePath() => MovementHandler.ClearPath();
-    
-    public void ShowAttackPath(IGridCell selectedCell, IGridCell targetCell) => AttackHandler.ShowPath(selectedCell, targetCell);
-    public void ClearAttackPath() => AttackHandler.ClearPath();
-    
-    public void ClearSelection()
+    public void PressCell(IGridCell cell)
     {
-        ClearRange();
-        ClearHoover();
+        if (OriginCell == cell) return;
+        TryRunUnitOrders();
+        Clear();
+        if (cell?.Data == null) return;
+        
+        if (!cell.Occupied ||
+            !cell.Unit.ValidForSelection) return;
+        
+        OriginCell = cell;
+        MovementHandler.ShowRange(CellData, MovementRange);
     }
-    public void ClearHoover()
+
+    private void TryRunUnitOrders()
     {
-        ClearMovePath();
-        ClearAttackPath();
+        if (OriginCell == null) return;
+        if (MovementHandler.HavePath)
+        {
+            OriginCellUnit.AddOrder(new MoveOrder(MovementHandler.Path));
+        }
+        if (AttackHandler.HavePath)
+        {
+            OriginCellUnit.AddOrder(new AttackOrder(AttackHandler.Path));
+        }
+        OriginCellUnit.RunOrders();
+    }
+
+    private void Clear()
+    {
+        OriginCell = null;
+        MovementHandler.ClearRange();
+        ClearPath();
+    }
+    private void ClearPath()
+    {
+        MovementHandler.ClearPath();
+        AttackHandler.ClearRange();
+        AttackHandler.ClearPath();
+    }
+    
+    private void HandleMessageDisplay()
+    {
+        if (Unreachable)
+        {
+            if (UnreachableMessage.Active) return;
+            MessagingHandler.DisplayMessage(UnreachableMessage);
+            return;
+        }
+        
+        if (OutOfRange)
+        {
+            if (OutOfRangeMessage.Active) return;
+            MessagingHandler.DisplayMessage(OutOfRangeMessage);
+            return;
+        }
     }
 }

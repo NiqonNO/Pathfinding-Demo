@@ -38,7 +38,7 @@ public class GridSettings : ScriptableObject
     private int GridSize => GridHeight * GridWidth;
     
     [SerializeField, HideInInspector]
-    private CellData[] CellsData = new CellData[1];
+    private CellProperties[] CellsData = new CellProperties[1];
     
     [field: SerializeField, HideInInspector]
     public int PlayerUnitCount { get; private set; }
@@ -50,7 +50,7 @@ public class GridSettings : ScriptableObject
         PlayerUnitCount = 0;
         EnemyUnitCount = 0;
         
-        var resizedCellData = new CellData[GridSize];
+        var resizedCellData = new CellProperties[GridSize];
         for (int x = 0; x < Math.Min(lastWidth, GridWidth); x++)
         {
             for (int y = 0; y < Math.Min(lastHeight, GridHeight); y++)

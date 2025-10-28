@@ -20,6 +20,8 @@ public class CellSettings : ScriptableObject
    [field: SerializeField]
    public Color MovementHighlightColor { get; private set; } = Color.green;
    [field: SerializeField]
+   public Color VisibilityHighlightColor { get; private set; } = Color.cyan;
+   [field: SerializeField]
    public Color AttackHighlightColor { get; private set; } = Color.red;
 
    public Color GetFillColor(CellType cellType)

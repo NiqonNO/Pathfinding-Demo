@@ -7,7 +7,7 @@ public class BresenhamsLineHandler
     public HashSet<IGridCell> Line { get; private set; } = new();
     public bool FoundLine { get; private set; }
 
-    public void FindLine_BresenhamsLine(IGridCell startCell, IGridCell targetCell)
+    public void FindLine_BresenhamsLine(CellData startCell, CellData targetCell)
     {
         ClearData();
         
@@ -18,7 +18,7 @@ public class BresenhamsLineHandler
         int x1 = targetCell.CellCoordinates.x;
         int y1 = targetCell.CellCoordinates.y;
 
-        IGridCell currentCell = startCell;
+        CellData currentCell = startCell;
 
         bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
 
@@ -63,14 +63,14 @@ public class BresenhamsLineHandler
                 return true;
             }
 
-            if (x != x0) Line.Add(currentCell);
+            if (x != x0) Line.Add(currentCell.Cell);
 
             err -= dY;
             if(StepY()) return true;
 
             if (!currentCell.TryGetNeighbor(ProgressDirection, out currentCell))
             {
-                Debug.LogError($"Null neighbour encountered when moving {ProgressDirection}", (UnityEngine.Object)currentCell);
+                Debug.LogError($"Null neighbour encountered when moving {ProgressDirection}", (UnityEngine.Object)currentCell.Cell);
                 throw new NullReferenceException();
             }
 
@@ -85,7 +85,7 @@ public class BresenhamsLineHandler
 
             if (!currentCell.TryGetNeighbor(StepDirection, out currentCell))
             {
-                Debug.LogError($"Null neighbour encountered when moving {StepDirection}", (UnityEngine.Object)currentCell);
+                Debug.LogError($"Null neighbour encountered when moving {StepDirection}", (UnityEngine.Object)currentCell.Cell);
                 throw new NullReferenceException();
             }
 
@@ -100,7 +100,7 @@ public class BresenhamsLineHandler
                 return true;
             }
 
-            Line.Add(currentCell);
+            Line.Add(currentCell.Cell);
             return false;
         }
     }

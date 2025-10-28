@@ -2,56 +2,64 @@
 
 public class AttackHandler
 {
-	private readonly ShadowCastHandler RangeHandler;
+	private readonly ShadowCastHandler RangeHandler = new();
+	private readonly BresenhamsLineHandler PathHandler = new();
 
-	public HashSet<IGridCell> Path => null;//PathHandler.Path;
-	public bool HavePath => false;//PathHandler.HaveValidPath;
-	
-	/*public HashSet<IGridCell> AttackPath => AttackVisibilityHandler.Line;
-	public bool HaveAttackPath => AttackVisibilityHandler.HaveValidAttackPoint;*/
-	
-	public AttackHandler()
+	public CellData AttackPositionCell { get; private set; }
+	public bool HaveAttackPosition => AttackPositionCell != null;
+
+	public List<IGridCell> Path => default;//PathHandler.Path;
+	public bool HavePath => default;//PathHandler.HaveValidPath;
+
+	public void ShowRange(CellData selectedCell, int range)
 	{
-		RangeHandler = new ShadowCastHandler(CellVisitCondition, OnCellVisited, OnCellCleared);
-		//AttackRangeHandler = new BSFHandler_AttackRange(MovementRangeHandler);
+		RangeHandler.GetVisibility(selectedCell, range);
+	}
+	public void ClearRange()
+	{
+		AttackPositionCell = null;
+		RangeHandler.ClearData();
 	}
 	
-	public void ShowPath(IGridCell selectedCell, IGridCell targetCell)
+	public void ShowPath(CellData selectedCell, CellData targetCell, int range)
 	{
-		RangeHandler.GetVisibility(targetCell, 20/*selectedCell.Unit.AttackRange*/);
-		/*AttackVisibilityHandler.GetRange_BFS(selectedCell, targetCell, selectedCell.Unit.AttackRange);
-		if (AttackVisibilityHandler.FoundAttackPosition)
-		{
-			if (AttackVisibilityHandler.NeedToMove)
-				ShowMovePath(selectedCell, AttackVisibilityHandler.AttackPosition);
-			return;
-		}
-		TryToShowAttackMovePath(selectedCell, targetCell);*/
+		if (AttackPositionCell == null) return;
+		//PathHandler.GetPath(AttackPositionCell, targetCell);
 	}
-	/*private void TryToShowAttackMovePath(IGridCell selectedCell, IGridCell targetCell)
-	{
-		MovementPathHandler.FindPath_AStar(selectedCell, targetCell);
-		AttackVisibilityHandler.CrossCheckCells(MovementPathHandler, targetCell);
-		if (AttackVisibilityHandler.FoundAttackPosition)
-		{
-			MovementPathHandler.ReconstructPath(AttackVisibilityHandler.AttackPosition, selectedCell.Unit.MoveRange);
-			OutOfRange = MovementPathHandler.OutOfRange;
-			return;
-		}
-		//Unreachable = true;
-	}*/
 	public void ClearPath()
 	{
-		RangeHandler.ClearData();
-		//AttackRangeHandler.ClearData();
+		//PathHandler.ClearData();
 	}
 	
+	private void EvaluateAttackPosition(CellData tested)
+	{
+		/*if (ReferenceEquals(AttackPositionCell, tested)) return;
+		if (AttackPositionCell == null)
+		{
+			AttackPositionCell = tested;
+			return;
+		}
+
+		int rangeCompare = AttackPositionCell.RangeDistance.CompareTo(tested.RangeDistance);
+		if (rangeCompare == -1) return;
+		if (rangeCompare == 1)
+		{
+			AttackPositionCell = tested;
+			return;
+		}
+
+		int attackCompare = AttackPositionCell.AttackDistance.CompareTo(tested.AttackDistance);
+		if (attackCompare == 1)
+		{
+			AttackPositionCell = tested;
+		}*/
+	}
 	
-	private bool CellVisitCondition(IGridCell cell) => cell != null && cell.CellType != CellType.Obstacle;
+	/*private bool CellVisitCondition(IGridCell cell) => cell != null && cell.CellType != CellType.Obstacle;
 	private void OnCellVisited(PathfindingCell cell)
 	{
 		cell.Cell.PathfindingData.AttackRangeData.DisplayText = cell.Distance.ToString();
 		cell.Cell.PathfindingData.IsVisibility = true;
 	}
-	private void OnCellCleared(IGridCell cell) => cell.PathfindingData.ClearVisibilityData();
+	private void OnCellCleared(IGridCell cell) => cell.PathfindingData.ClearVisibilityData();*/
 }

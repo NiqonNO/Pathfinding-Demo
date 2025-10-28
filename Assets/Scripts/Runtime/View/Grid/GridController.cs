@@ -44,8 +44,8 @@ public class GridController : MonoBehaviour
                 unitController.CreateUnit(cell, spawnUnit);
             }
         
-            if(coordX > 0) cell.SetNeighbor(CellDirection.W, Cells[index - 1]);
-            if(coordY > 0) cell.SetNeighbor(CellDirection.S, Cells[index - GridSettings.GridWidth]);
+            if(coordX > 0) cell.Data.SetNeighbor(CellDirection.W, Cells[index - 1].Data);
+            if(coordY > 0) cell.Data.SetNeighbor(CellDirection.S, Cells[index - GridSettings.GridWidth].Data);
         }
     }
 }

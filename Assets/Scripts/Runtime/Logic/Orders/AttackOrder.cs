@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class AttackOrder : UnitOrder
 {
@@ -7,19 +9,19 @@ public class AttackOrder : UnitOrder
     
     public override bool Completed { get; protected set; }
 
-    private IGridCell AttackedCell;
+    private List<IGridCell> AttackPath;
     private Transform UnitTransform;
     private Quaternion AttackRotation;
     
-    public AttackOrder(IGridCell attackedCell)
+    public AttackOrder(List<IGridCell> attackPath)
     {
-        AttackedCell = attackedCell;
+        AttackPath = attackPath;
     }
     
     public override void Initialize(IGridUnit myself)
     {
         UnitTransform = myself.Transform;
-        Vector3 attackDirection = AttackedCell.Transform.position - myself.Transform.position;
+        Vector3 attackDirection = AttackPath.Last().Transform.position - myself.Transform.position;
         AttackRotation = Quaternion.LookRotation(attackDirection, Vector3.up);
     }
 
@@ -37,6 +39,6 @@ public class AttackOrder : UnitOrder
 
     public override void Finish()
     {
-        AttackedCell.Unit.Destroy();
+        AttackPath.Last().Unit.Destroy();
     }
 }

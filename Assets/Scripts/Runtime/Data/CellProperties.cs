@@ -2,7 +2,7 @@
 using UnityEngine;
 
 [Serializable]
-public struct CellData
+public struct CellProperties
 {
     [field: SerializeField]
     public CellType CellType { get; set; }

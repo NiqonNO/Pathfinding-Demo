@@ -1,35 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 
-public abstract class PathfindingSearchHandler
+public abstract class PathfindingSearchHandler<T> where T : PathfindingCellData
 {
-	protected readonly HashSet<IGridCell> ValidCells = new HashSet<IGridCell>();
-	
-	protected Func<IGridCell, bool> CellVisitCondition;
-	protected Action<PathfindingCell> OnCellValid;
-	protected Action<IGridCell> OnCellCleared;
+	protected readonly HashSet<T> VisitedCells = new HashSet<T>();
 	
 	protected bool HaveData;
-
-	protected PathfindingSearchHandler(Func<IGridCell, bool> cellVisitCondition, 
-		Action<PathfindingCell> onCellValid,
-		Action<IGridCell> onCellCleared)
-	{
-		CellVisitCondition = cellVisitCondition;
-		OnCellValid = onCellValid;
-		OnCellCleared = onCellCleared;
-	}
 	
 	public virtual void ClearData()
 	{
 		if (!HaveData) return;
         
-		foreach (var cells in ValidCells)
+		foreach (var cell in VisitedCells)
 		{
-			OnCellCleared?.Invoke(cells);
+			cell.Clear();
 		}
 
-		ValidCells.Clear();
+		VisitedCells.Clear();
 		HaveData = false;
 	}
 }

@@ -43,7 +43,7 @@ public class CellDisplay : MonoBehaviour
         Fill.color = CellSettings.GetFillColor(cellType);
     }
 
-    public void UpdateDisplay(CellPathfindingData data)
+    public void UpdateDisplay(CellData data)
     {
         Outline.color = Color.clear;
         Label.text = string.Empty;
@@ -52,20 +52,24 @@ public class CellDisplay : MonoBehaviour
         if (data.IsVisibility)
         {
             Outline.color = CellSettings.AttackHighlightColor;
-            Label.text = data.AttackRangeData.DisplayText;
-            Label.color = data.AttackRangeData.DisplayColor;
+            Label.text = data.AttackRangeData.Distance.ToString();
+        }
+        else if (data.IsAttack)
+        {
+            Outline.color = CellSettings.AttackHighlightColor;
+            Label.text = data.AttackPathData.Distance.ToString();
         }
         else if (data.IsMovementPath)
         {
             Outline.color = CellSettings.MovementHighlightColor;
-            Label.text = data.MovePathData.DisplayText;
-            Label.color = data.MovePathData.DisplayColor;
+            Label.text = data.MovementPathData.Distance.ToString();
+            if(data.MovementPathData.IsOutOfRange)
+                Label.color = Color.red;
         }
         else if (data.IsRange)
         {
             Outline.color = CellSettings.RangeHighlightColor;
-            Label.text = data.MoveRangeData.DisplayText;
-            Label.color = data.MoveRangeData.DisplayColor;
+            Label.text = data.MovementRangeData.Distance.ToString();
         }
     }
 }
