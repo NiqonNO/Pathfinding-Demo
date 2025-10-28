@@ -1,4 +1,6 @@
-﻿using TMPro;
+﻿using System;
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,8 +17,12 @@ public class CellDisplay : MonoBehaviour
     private Image Fill;
     [SerializeField] 
     private Image Outline;
-
+    [SerializeField] 
+    private Image Marker;
+    
     private CellSettings CellSettings;
+    private bool Selected;
+    private Coroutine TouchAnimation;
 
     public void SetSettings(CellSettings cellSettings, CellType cellType)
     {
@@ -43,33 +49,101 @@ public class CellDisplay : MonoBehaviour
         Fill.color = CellSettings.GetFillColor(cellType);
     }
 
-    public void UpdateDisplay(CellData data)
+    public void HoverStart()
+    {
+        Marker.color = Color.cyan;
+    }
+    public void HoverEnd()
+    {
+        Marker.color = Color.clear;
+    }
+    
+    public void Touch()
+    {
+        if (TouchAnimation != null)
+        {
+            StopCoroutine(TouchAnimation);
+        }
+
+        TouchAnimation = StartCoroutine(Pulse());
+    }
+
+    IEnumerator Pulse()
+    {
+        float duration = 0.2f;
+        Vector3 targetScale = Vector3.one * 1.5f;
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime / duration;
+            Outline.transform.localScale = Vector3.Lerp(Vector3.one, targetScale, t*t);
+            yield return null;
+        }
+
+        t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime / duration;
+            Outline.transform.localScale = Vector3.Lerp(targetScale, Vector3.one, Mathf.Sqrt(t));
+            yield return null;
+        }
+
+        Outline.transform.localScale = Vector3.one;
+        TouchAnimation = null;
+    }
+
+    public void SelectionStart()
+    {
+        Outline.color = Color.yellow;
+        Selected = true;
+    }
+    public void SelectionEnd()
     {
         Outline.color = Color.clear;
-        Label.text = string.Empty;
-        Label.color = Color.black;
-
-        if (data.IsVisibility)
+        Selected = false;
+    }
+    
+    public void UpdateDisplay(CellData data)
+    {
+        var cellColor = Color.clear;
+        var cellText = string.Empty;
+        var textColor = Color.black;
+        
+        if (data.IsAttack)
         {
-            Outline.color = CellSettings.AttackHighlightColor;
-            Label.text = data.AttackRangeData.Distance.ToString();
+            cellColor = CellSettings.AttackHighlightColor;
         }
-        else if (data.IsAttack)
+        else if (data.IsVisibility)
         {
-            Outline.color = CellSettings.AttackHighlightColor;
-            Label.text = data.AttackPathData.Distance.ToString();
+            cellColor = CellSettings.VisibilityHighlightColor;
+            if (data.IsRange)
+            {
+                cellText = "X";
+            }
+            else
+            {
+                cellColor.a = 0.5f;
+            }
         }
         else if (data.IsMovementPath)
         {
-            Outline.color = CellSettings.MovementHighlightColor;
-            Label.text = data.MovementPathData.Distance.ToString();
+            cellColor = CellSettings.MovementHighlightColor;
+            cellText = data.MovementPathData.Distance.ToString();
             if(data.MovementPathData.IsOutOfRange)
-                Label.color = Color.red;
+                textColor = Color.red;
         }
         else if (data.IsRange)
         {
-            Outline.color = CellSettings.RangeHighlightColor;
-            Label.text = data.MovementRangeData.Distance.ToString();
+            cellColor = CellSettings.RangeHighlightColor;
         }
+
+        if (Selected)
+        {
+            cellColor = Color.yellow;
+        }
+        
+        Outline.color = cellColor;
+        Label.text = cellText;
+        Label.color = textColor;
     }
 }

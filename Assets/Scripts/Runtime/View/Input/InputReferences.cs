@@ -3,7 +3,6 @@ using UnityEngine.InputSystem;
 
 [Serializable]
 public class InputReferences
-
 {
     public InputActionReference moveMouseInput;
     public InputActionReference moveCameraInput;

@@ -67,7 +67,7 @@ public class AStarHandler : PathfindingSearchHandler<AStarCellData>
         {
             if (current.Distance <= range)
             {
-                Path.Add(current.Cell.Cell);
+                Path.Add(current.Cell.GridObject);
             }
             else
             {

@@ -6,7 +6,7 @@ public class CellData
     private event Action<CellData> OnDataUpdate;
     private readonly CellData[] Neighbors = new CellData[4];
     
-    public IGridCell Cell { get; }
+    public IGridCell GridObject { get; }
 
     public BSFCellData MovementRangeData { get; }
     public AStarCellData MovementPathData { get; }
@@ -28,11 +28,11 @@ public class CellData
         IsVisibility ? AttackRangeData.Distance :
         IsAttack ? AttackPathData.Distance : 0;
     
-    public bool Occupied => Cell.Occupied;
+    public bool Occupied => GridObject.Occupied;
     
-    public CellData(IGridCell cell, Vector2Int coordinates, CellType cellType, Action<CellData> onUpdateData)
+    public CellData(IGridCell gridObject, Vector2Int coordinates, CellType cellType, Action<CellData> onUpdateData)
     {
-        Cell = cell;
+        GridObject = gridObject;
         CellCoordinates = coordinates;
         CellType = cellType;
         OnDataUpdate = onUpdateData;

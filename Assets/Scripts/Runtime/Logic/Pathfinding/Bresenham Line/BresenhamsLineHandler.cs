@@ -63,14 +63,14 @@ public class BresenhamsLineHandler
                 return true;
             }
 
-            if (x != x0) Line.Add(currentCell.Cell);
+            if (x != x0) Line.Add(currentCell.GridObject);
 
             err -= dY;
             if(StepY()) return true;
 
             if (!currentCell.TryGetNeighbor(ProgressDirection, out currentCell))
             {
-                Debug.LogError($"Null neighbour encountered when moving {ProgressDirection}", (UnityEngine.Object)currentCell.Cell);
+                Debug.LogError($"Null neighbour encountered when moving {ProgressDirection}", (UnityEngine.Object)currentCell.GridObject);
                 throw new NullReferenceException();
             }
 
@@ -85,7 +85,7 @@ public class BresenhamsLineHandler
 
             if (!currentCell.TryGetNeighbor(StepDirection, out currentCell))
             {
-                Debug.LogError($"Null neighbour encountered when moving {StepDirection}", (UnityEngine.Object)currentCell.Cell);
+                Debug.LogError($"Null neighbour encountered when moving {StepDirection}", (UnityEngine.Object)currentCell.GridObject);
                 throw new NullReferenceException();
             }
 
@@ -100,7 +100,7 @@ public class BresenhamsLineHandler
                 return true;
             }
 
-            Line.Add(currentCell.Cell);
+            Line.Add(currentCell.GridObject);
             return false;
         }
     }

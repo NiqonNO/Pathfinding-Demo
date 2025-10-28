@@ -30,9 +30,9 @@
 	{
 		if (SelectedCell == selectable) return;
 
-		SelectedCell?.Select();
-		SelectedCell = selectable;
 		SelectedCell?.Deselect();
+		SelectedCell = selectable;
+		SelectedCell?.Select();
 
 		PathfindingHandler.PressCell(selectable as IGridCell);
 	}

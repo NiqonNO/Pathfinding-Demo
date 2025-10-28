@@ -21,7 +21,6 @@ public class CellObject : MonoBehaviour, IHoverable, ITouchable, ISelectable, IG
     public CellData Data { get; private set; }
     
     public Transform Transform => transform;
-    
 
     public IGridUnit Unit { get; private set; }
     public bool Occupied => Unit != null;
