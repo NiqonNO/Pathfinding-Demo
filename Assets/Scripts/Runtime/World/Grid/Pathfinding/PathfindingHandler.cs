@@ -27,22 +27,36 @@ public class PathfindingHandler
         if (cell.Occupied &&
             cell.Unit.ValidForAttack)
         {
-            AttackHandler.ShowRange(cellData, AttackRange);
-            if(!AttackHandler.HaveAttackPosition)
-            {
-                /*MovementHandler.ShowPath(OriginCell, cell, MovementRange);
-                AttackHandler.CrossCheckCells();*/
-            }
-            if (!AttackHandler.HaveAttackPosition) return;
-            AttackHandler.ShowPath(AttackHandler.AttackPositionCell, cellData, AttackRange);
-            if (AttackHandler.AttackPositionCell == CellData) return;
+            HighlightAttackPath(cellData);
             HandleMessageDisplay();
+            return;
         }
-        else if (OriginCell == null) return;
+        if (OriginCell != null)
         {
-            MovementHandler.ShowPath(CellData, cellData, MovementRange);
+            HighlightMovementPath(cellData);
             HandleMessageDisplay();
+            return;
         }
+    }
+
+    private void HighlightAttackPath(CellData cellData)
+    {
+        AttackHandler.ShowRange(cellData, AttackRange);
+        if (!AttackHandler.HaveAttackPosition)
+        {
+            /*MovementHandler.ShowPath(OriginCell, cell, MovementRange);
+                AttackHandler.CrossCheckCells();*/
+        }
+        if (!AttackHandler.HaveAttackPosition) return;
+        AttackHandler.ShowPath(cellData);
+        if (AttackHandler.AttackPositionCell == CellData) return;
+        
+        MovementHandler.ShowPath(CellData, AttackHandler.AttackPositionCell, MovementRange);
+    }
+
+    private void HighlightMovementPath(CellData cellData)
+    {
+        MovementHandler.ShowPath(CellData, cellData, MovementRange);
     }
 
     public void PressCell(IGridCell cell)

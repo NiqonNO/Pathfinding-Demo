@@ -45,7 +45,7 @@ public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
         
         if (cellData.Visible != Visibility.Opaque)
         {
-            TryEnqueueNextRow(cellData.RowOrigin, cellData.MinSlope, cellData.MaxSlope, range);
+            EnqueueNextRow(cellData.RowOrigin, cellData.MinSlope, cellData.MaxSlope, range);
         }
     }
 
@@ -59,7 +59,7 @@ public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
 
         if (underSlope)
         {
-            TryEnqueueNextCell(currentCellData, currentCellData.MinSlope, currentCellData.MaxSlope, range);
+            EnqueueNextCell(currentCellData, currentCellData.MinSlope, currentCellData.MaxSlope, range);
             return;
         }
         if (overSlope) return;
@@ -78,15 +78,15 @@ public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
             currentCellData.Visible = Visibility.Opaque;
             
             if (currentCellData.PreviousVisible == Visibility.Transparent)
-                TryEnqueueNextRow(currentCellData.RowOrigin, currentCellData.MinSlope, Math.Min(currentCellData.MaxSlope, enterSlope), range);
+                EnqueueNextRow(currentCellData.RowOrigin, currentCellData.MinSlope, Math.Min(currentCellData.MaxSlope, enterSlope), range);
             
             currentCellData.MinSlope = Math.Max(currentCellData.MinSlope, exitSlope);
         }
         
-        TryEnqueueNextCell(currentCellData, currentCellData.MinSlope, currentCellData.MaxSlope, range);
+        EnqueueNextCell(currentCellData, currentCellData.MinSlope, currentCellData.MaxSlope, range);
     }
 
-    void TryEnqueueNextRow(ShadowCastCellData current, float minSlope, float maxSlope, int range)
+    void EnqueueNextRow(ShadowCastCellData current, float minSlope, float maxSlope, int range)
     {
         if (current.Distance >= range ||
             minSlope >= maxSlope ||
@@ -95,7 +95,7 @@ public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
         newRow.MaxSlope = maxSlope;
         RowFrontier.Push(newRow);
     }
-    void TryEnqueueNextCell(ShadowCastCellData current, float minSlope, float maxSlope, int range)
+    void EnqueueNextCell(ShadowCastCellData current, float minSlope, float maxSlope, int range)
     {
         if (current.Column >= current.Depth ||
             current.Distance >= range ||

@@ -17,6 +17,22 @@ public class ShadowCastCellData : PathfindingCellData
 	
 	public ShadowCastCellData(CellData cell) : base(cell) { }
 
+	public void GetDirectionsForOctant(Octant octant)
+	{
+		(DepthDirection, ScanDirection) = octant switch
+		{
+			Octant.NE => (CellDirection.N, CellDirection.E),
+			Octant.EN => (CellDirection.E, CellDirection.N),
+			Octant.ES => (CellDirection.E, CellDirection.S),
+			Octant.SE => (CellDirection.S, CellDirection.E),
+			Octant.SW => (CellDirection.S, CellDirection.W),
+			Octant.WS => (CellDirection.W, CellDirection.S),
+			Octant.WN => (CellDirection.W, CellDirection.N),
+			Octant.NW => (CellDirection.N, CellDirection.W),
+			_ => throw new ArgumentOutOfRangeException(nameof(octant), octant, null)
+		};
+	}
+	
 	public bool TryGetNextRow(out ShadowCastCellData newCellData)
 	{
 		if (!TryGetNext(DepthDirection, Visibility.Inapplicable, Depth + 1, Column, 0.0f, 1.0f, out newCellData)) return false;
@@ -63,21 +79,5 @@ public class ShadowCastCellData : PathfindingCellData
 		Visible = Visibility.Inapplicable;
 		RowOrigin = null;
 		base.Clear();
-	}
-
-	public void GetDirectionsForOctant(Octant octant)
-	{
-		(DepthDirection, ScanDirection) = octant switch
-		{
-			Octant.NE => (CellDirection.N, CellDirection.E),
-			Octant.EN => (CellDirection.E, CellDirection.N),
-			Octant.ES => (CellDirection.E, CellDirection.S),
-			Octant.SE => (CellDirection.S, CellDirection.E),
-			Octant.SW => (CellDirection.S, CellDirection.W),
-			Octant.WS => (CellDirection.W, CellDirection.S),
-			Octant.WN => (CellDirection.W, CellDirection.N),
-			Octant.NW => (CellDirection.N, CellDirection.W),
-			_ => throw new ArgumentOutOfRangeException(nameof(octant), octant, null)
-		};
 	}
 }

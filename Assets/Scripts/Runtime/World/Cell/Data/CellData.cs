@@ -11,7 +11,7 @@ public class CellData
     public BSFCellData MovementRangeData { get; }
     public AStarCellData MovementPathData { get; }
     public ShadowCastCellData AttackRangeData { get; }
-    public BresenhamsLineCellData AttackPathData { get; }
+    public DDACellData AttackPathData { get; }
     
     public CellType CellType { get; private set; }
     public Vector2Int CellCoordinates { get; private set; }
@@ -25,8 +25,7 @@ public class CellData
         IsRange ? MovementRangeData.Distance :
         IsMovementPath ? MovementPathData.Distance : 0;
     public int AttackDistance =>
-        IsVisibility ? AttackRangeData.Distance :
-        IsAttack ? AttackPathData.Distance : 0;
+        IsVisibility ? AttackRangeData.Distance : 0;
     
     public bool Occupied => GridObject.Occupied;
     
@@ -40,7 +39,7 @@ public class CellData
         MovementRangeData = new BSFCellData(this);
         MovementPathData = new AStarCellData(this);
         AttackRangeData = new ShadowCastCellData(this);
-        AttackPathData = new BresenhamsLineCellData(this);
+        AttackPathData = new DDACellData(this);
     }
 
     public bool TryGetNeighbor(CellDirection direction, out CellData cell)

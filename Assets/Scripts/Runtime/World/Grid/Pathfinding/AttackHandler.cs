@@ -3,13 +3,13 @@
 public class AttackHandler
 {
 	private readonly ShadowCastHandler RangeHandler = new();
-	private readonly BresenhamsLineHandler PathHandler = new();
+	private readonly DDAHandler PathHandler = new();
 
 	public CellData AttackPositionCell { get; private set; }
 	public bool HaveAttackPosition => AttackPositionCell != null;
 
-	public List<IGridCell> Path => default;//PathHandler.Path;
-	public bool HavePath => default;//PathHandler.HaveValidPath;
+	public List<IGridCell> Path => PathHandler.Path;
+	public bool HavePath => PathHandler.HaveValidPath;
 
 	public void ShowRange(CellData selectedCell, int range)
 	{
@@ -21,14 +21,14 @@ public class AttackHandler
 		RangeHandler.ClearData();
 	}
 	
-	public void ShowPath(CellData selectedCell, CellData targetCell, int range)
+	public void ShowPath(CellData targetCell)
 	{
 		if (AttackPositionCell == null) return;
-		//PathHandler.GetPath(AttackPositionCell, targetCell);
+		PathHandler.ShowPath(AttackPositionCell, targetCell);
 	}
 	public void ClearPath()
 	{
-		//PathHandler.ClearData();
+		PathHandler.ClearData();
 	}
 	
 	private void EvaluateAttackPosition(CellData tested)
