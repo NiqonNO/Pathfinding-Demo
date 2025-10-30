@@ -38,7 +38,7 @@ public class AttackHandler
 		PathHandler.ClearData();
 	}
 	
-	private void EvaluateAttackPosition(IShadowCastData tested)
+	private void EvaluateAttackPosition(ICellSearchData tested)
 	{
 		var cellData = tested.Cell;
 		if (!cellData.MovementData.Valid || cellData.AttackData.Visible != VisibilityState.Visible) return;

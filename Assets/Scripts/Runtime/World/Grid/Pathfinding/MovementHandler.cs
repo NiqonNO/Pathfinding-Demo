@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 public class MovementHandler
 {
@@ -7,6 +8,7 @@ public class MovementHandler
 	
 	public List<ICellSearchData> Path => PathHandler.Path;
 	public bool HavePath => PathHandler.HaveValidPath;
+	public bool OutOfRange => PathHandler.OutOfRange;
 
 	public void ShowRange(CellData selectedCell, int range)
 	{
@@ -23,6 +25,7 @@ public class MovementHandler
 		if (!PathHandler.FoundPath) return;
 		PathHandler.GetPath(targetCell.MovementData, range);
 	}
+	
 	public void ClearPath()
 	{
 		PathHandler.ClearData();

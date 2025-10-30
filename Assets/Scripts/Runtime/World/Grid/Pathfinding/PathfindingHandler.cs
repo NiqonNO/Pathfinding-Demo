@@ -20,36 +20,36 @@
         if (OriginCell == null) return;
         ClearPath();
         var cellData = cell?.Data;
-        if (cellData == null) return;
-
-        if (cell.Occupied &&
-            cell.Unit.ValidForAttack)
+        if (cellData != null)
         {
-            HighlightAttackPath(cellData);
-            HandleMessageDisplay();
-            return;
+            if (cell.Occupied &&
+                cell.Unit.ValidForAttack)
+                HighlightAttackPath(cellData);
+            else
+                HighlightMovementPath(cellData);
         }
-        HighlightMovementPath(cellData);
         HandleMessageDisplay();
     }
 
     private void HighlightAttackPath(CellData cellData)
     {
+        OutOfRange = true;
         AttackHandler.ShowRange(cellData, AttackRange);
-        if (!AttackHandler.HaveAttackPosition)
-        {
-            //MovementHandler.ShowPath(OriginCell, cell, MovementRange);
-        }
         if (!AttackHandler.HaveAttackPosition) return;
+        
+        OutOfRange = false;
         AttackHandler.ShowPath(cellData);
         if (AttackHandler.AttackPositionCell == CellData) return;
         
         MovementHandler.ShowPath(CellData, AttackHandler.AttackPositionCell, MovementRange);
+        OutOfRange = MovementHandler.OutOfRange;
     }
 
     private void HighlightMovementPath(CellData cellData)
     {
         MovementHandler.ShowPath(CellData, cellData, MovementRange);
+        OutOfRange = MovementHandler.OutOfRange;
+        Unreachable = !MovementHandler.HavePath;
     }
 
     public void PressCell(IGridCell cell)
@@ -63,7 +63,6 @@
             !cell.Unit.ValidForSelection) return;
         
         OriginCell = cell;
-        
         MovementHandler.ShowRange(CellData, MovementRange);
     }
 
@@ -89,6 +88,10 @@
     }
     private void ClearPath()
     {
+        OutOfRange = false;
+        Unreachable = false;
+        MessagingHandler.ClearMessage();
+        
         MovementHandler.ClearPath();
         AttackHandler.ClearRange();
         AttackHandler.ClearPath();
@@ -100,14 +103,11 @@
         {
             if (UnreachableMessage.Active) return;
             MessagingHandler.DisplayMessage(UnreachableMessage);
-            return;
         }
-        
-        if (OutOfRange)
+        else if (OutOfRange)
         {
             if (OutOfRangeMessage.Active) return;
             MessagingHandler.DisplayMessage(OutOfRangeMessage);
-            return;
         }
     }
 }
