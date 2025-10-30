@@ -1,31 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class AStarHandler : PathfindingSearchHandler<AStarCellData>
+public class AStarHandler : CellSearchHandler<IAStarData>
 {
-    private readonly PriorityQueue<AStarCellData> Frontier = new();
+    private readonly PriorityQueue<IAStarData> Frontier = new();
     
-    public List<IGridCell> Path { get; private set; } = new();
+    public List<ICellSearchData> Path { get; private set; } = new();
     public bool FoundPath { get; private set; }
     public bool HaveValidPath { get; private set; }
     public bool OutOfRange { get; private set; }
     
-    public void FindPath(CellData startCell, CellData endCell)
+    public void FindPath(IAStarData startCell, IAStarData endCell)
     {
         ClearData();
-        
         HaveData = true;
-        var originCell = startCell.MovementPathData;
-        originCell.Distance = 0;
-        originCell.Estimation = EuclideanDistance(startCell, endCell);
-        Frontier.Enqueue(originCell, originCell.Estimation);
-        VisitedCells.Add(originCell);
+        
+        startCell.Distance = 0;
+        startCell.Estimation = EuclideanDistance(startCell, endCell);
+        
+        VisitedCells.Add(startCell);
+        Frontier.Enqueue(startCell, startCell.Estimation);
 
         while (Frontier.Count > 0)
         {
-            AStarCellData current = Frontier.Dequeue();
-            if (current.Cell == endCell)
+            IAStarData current = Frontier.Dequeue();
+            if (current == endCell)
             {
                 FoundPath = true;
                 return;
@@ -37,16 +36,17 @@ public class AStarHandler : PathfindingSearchHandler<AStarCellData>
             }
         }
     }
-    private void ScanCell(AStarCellData current, CellData endCell, CellDirection direction)
+    private void ScanCell(IAStarData current, IAStarData endCell, CellDirection direction)
     {
-        if (!current.TryGetNext(direction, out var neighbor)) return;
+        if (!current.TryGetNext(direction, out var neighbor) ||
+            !neighbor.IsTraversable()) return;
         
         int tentativeG = current.Distance + 1;
-        if (tentativeG >= neighbor.Distance) return;
+        if (VisitedCells.Contains(neighbor) && tentativeG >= neighbor.Distance) return;
 
         neighbor.Previous = current;
         neighbor.Distance = tentativeG;
-        neighbor.Estimation = tentativeG + EuclideanDistance(neighbor.Cell, endCell);
+        neighbor.Estimation = tentativeG + EuclideanDistance(neighbor, endCell);
         
         if (Frontier.Contains(neighbor))
         {
@@ -58,16 +58,16 @@ public class AStarHandler : PathfindingSearchHandler<AStarCellData>
         Frontier.Enqueue(neighbor, neighbor.Estimation);
     }
     
-    public void GetPath(CellData endCell, int range = int.MaxValue)
+    public void GetPath(IAStarData endCell, int range = int.MaxValue)
     {
-        var current = endCell.MovementPathData;
+        IAStarData current = endCell;
         if (!VisitedCells.Contains(current)) return;
         
         while (current != null)
         {
             if (current.Distance <= range)
             {
-                Path.Add(current.Cell.GridObject);
+                Path.Add(current);
             }
             else
             {
@@ -75,7 +75,7 @@ public class AStarHandler : PathfindingSearchHandler<AStarCellData>
                 OutOfRange = true;
             }
             
-            current.Display();
+            OnValid(current);
             current = current.Previous;
         }
 
@@ -94,10 +94,13 @@ public class AStarHandler : PathfindingSearchHandler<AStarCellData>
         OutOfRange = false;
     }
     
-    private int EuclideanDistance(CellData startCell, CellData endCell)
+    protected override void ValidateCell(IAStarData cell) => cell.OnValid();
+    protected override void ClearCell(IAStarData cell) => cell.Clear();
+    
+    private int EuclideanDistance(IAStarData startCell, IAStarData endCell)
     {
-        int dx = Mathf.Abs(startCell.CellCoordinates.x - endCell.CellCoordinates.x);
-        int dy = Mathf.Abs(startCell.CellCoordinates.y - endCell.CellCoordinates.y);
+        int dx = Mathf.Abs(startCell.X - endCell.X);
+        int dy = Mathf.Abs(startCell.Y - endCell.Y);
         return dx + dy;
     }
 }

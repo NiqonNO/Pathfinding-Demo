@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-public class PathfindingHandler
+﻿public class PathfindingHandler
 {
     private readonly Message OutOfRangeMessage = new ("Target Out Of Range");
     private readonly Message UnreachableMessage = new ("Target Unreachable");
@@ -31,12 +29,8 @@ public class PathfindingHandler
             HandleMessageDisplay();
             return;
         }
-        if (OriginCell != null)
-        {
-            HighlightMovementPath(cellData);
-            HandleMessageDisplay();
-            return;
-        }
+        HighlightMovementPath(cellData);
+        HandleMessageDisplay();
     }
 
     private void HighlightAttackPath(CellData cellData)
@@ -44,8 +38,7 @@ public class PathfindingHandler
         AttackHandler.ShowRange(cellData, AttackRange);
         if (!AttackHandler.HaveAttackPosition)
         {
-            /*MovementHandler.ShowPath(OriginCell, cell, MovementRange);
-                AttackHandler.CrossCheckCells();*/
+            //MovementHandler.ShowPath(OriginCell, cell, MovementRange);
         }
         if (!AttackHandler.HaveAttackPosition) return;
         AttackHandler.ShowPath(cellData);
@@ -65,11 +58,12 @@ public class PathfindingHandler
         TryRunUnitOrders();
         Clear();
         if (cell?.Data == null) return;
-        
+
         if (!cell.Occupied ||
             !cell.Unit.ValidForSelection) return;
         
         OriginCell = cell;
+        
         MovementHandler.ShowRange(CellData, MovementRange);
     }
 

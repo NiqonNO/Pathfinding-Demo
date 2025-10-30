@@ -2,18 +2,25 @@
 
 public class AttackHandler
 {
-	private readonly ShadowCastHandler RangeHandler = new();
-	private readonly DDAHandler PathHandler = new();
+	private readonly ShadowCastHandler RangeHandler;
+	private readonly DDAHandler PathHandler;
 
-	public CellData AttackPositionCell { get; private set; }
+	public CellData AttackPositionCell { get; set; }
 	public bool HaveAttackPosition => AttackPositionCell != null;
 
-	public List<IGridCell> Path => PathHandler.Path;
+	public List<ICellSearchData> Path => PathHandler.Path;
 	public bool HavePath => PathHandler.HaveValidPath;
 
+	public AttackHandler()
+	{
+		RangeHandler = new ShadowCastHandler();
+		PathHandler = new DDAHandler();
+		RangeHandler.OnCellValid += EvaluateAttackPosition;
+	}
+	
 	public void ShowRange(CellData selectedCell, int range)
 	{
-		RangeHandler.GetVisibility(selectedCell, range);
+		RangeHandler.GetVisibility(selectedCell.AttackData, range);
 	}
 	public void ClearRange()
 	{
@@ -24,42 +31,37 @@ public class AttackHandler
 	public void ShowPath(CellData targetCell)
 	{
 		if (AttackPositionCell == null) return;
-		PathHandler.ShowPath(AttackPositionCell, targetCell);
+		PathHandler.ShowPath(targetCell.AttackData, AttackPositionCell.AttackData);
 	}
 	public void ClearPath()
 	{
 		PathHandler.ClearData();
 	}
 	
-	private void EvaluateAttackPosition(CellData tested)
+	private void EvaluateAttackPosition(IShadowCastData tested)
 	{
-		/*if (ReferenceEquals(AttackPositionCell, tested)) return;
+		var cellData = tested.Cell;
+		if (!cellData.MovementData.Valid || cellData.AttackData.Visible != VisibilityState.Visible) return;
+		
+		if (ReferenceEquals(AttackPositionCell, cellData)) return;
 		if (AttackPositionCell == null)
 		{
-			AttackPositionCell = tested;
+			AttackPositionCell = cellData;
 			return;
 		}
 
-		int rangeCompare = AttackPositionCell.RangeDistance.CompareTo(tested.RangeDistance);
+		int rangeCompare = AttackPositionCell.MovementData.Distance.CompareTo(cellData.MovementData.Distance);
 		if (rangeCompare == -1) return;
 		if (rangeCompare == 1)
 		{
-			AttackPositionCell = tested;
+			AttackPositionCell = cellData;
 			return;
 		}
 
-		int attackCompare = AttackPositionCell.AttackDistance.CompareTo(tested.AttackDistance);
+		int attackCompare = AttackPositionCell.AttackData.Distance.CompareTo(cellData.AttackData.Distance);
 		if (attackCompare == 1)
 		{
-			AttackPositionCell = tested;
-		}*/
+			AttackPositionCell = cellData;
+		}
 	}
-	
-	/*private bool CellVisitCondition(IGridCell cell) => cell != null && cell.CellType != CellType.Obstacle;
-	private void OnCellVisited(PathfindingCell cell)
-	{
-		cell.Cell.PathfindingData.AttackRangeData.DisplayText = cell.Distance.ToString();
-		cell.Cell.PathfindingData.IsVisibility = true;
-	}
-	private void OnCellCleared(IGridCell cell) => cell.PathfindingData.ClearVisibilityData();*/
 }

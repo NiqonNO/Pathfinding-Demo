@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -108,35 +107,45 @@ public class CellDisplay : MonoBehaviour
         var cellColor = Color.clear;
         var cellText = string.Empty;
         var textColor = Color.black;
+
+        if (data.MovementData.Valid)
+        {
+            cellText = data.MovementData.Distance.ToString();
+        }
         
-        if (data.IsAttack)
+        if(data.AttackData.IsRange)
         {
-            cellColor = CellSettings.AttackHighlightColor;
-        }
-        else if (data.IsVisibility)
-        {
-            cellColor = CellSettings.VisibilityHighlightColor;
-            if (data.IsRange)
+            switch (data.AttackData.Visible)
             {
-                cellText = "X";
-            }
-            else
-            {
-                cellColor.a = 0.5f;
+                case VisibilityState.Obscured:
+                    break;
+                case VisibilityState.Partial:
+                    cellColor = CellSettings.VisibilityHighlightColor;
+                    break;
+                case VisibilityState.Visible:
+                    cellColor = CellSettings.VisibilityHighlightColor;
+                    cellText = "X";
+                    break;
             }
         }
-        else if (data.IsMovementPath)
-        {
-            cellColor = CellSettings.MovementHighlightColor;
-            cellText = data.MovementPathData.Distance.ToString();
-            if(data.MovementPathData.IsOutOfRange)
-                textColor = Color.red;
-        }
-        else if (data.IsRange)
+        
+        if (data.MovementData.IsRange)
         {
             cellColor = CellSettings.RangeHighlightColor;
         }
-
+        
+        if (data.MovementData.IsPath)
+        {
+            cellColor = CellSettings.MovementHighlightColor;
+            if(data.MovementData.IsOutOfRange)
+                textColor = Color.red;
+        }
+        
+        if (data.AttackData.IsPath)
+        {
+            cellColor = CellSettings.AttackHighlightColor;
+        }
+        
         if (Selected)
         {
             cellColor = Color.yellow;

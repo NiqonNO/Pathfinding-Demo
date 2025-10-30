@@ -1,4 +1,4 @@
-﻿public enum Visibility
+﻿public enum TransparencyState
 {
 	Inapplicable = 0,
 	Opaque = 1,

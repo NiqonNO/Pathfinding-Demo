@@ -1,39 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 
-public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
+public class ShadowCastHandler : CellSearchHandler<IShadowCastData>
 {
-    private readonly Stack<ShadowCastCellData> RowFrontier = new();
-    private readonly Stack<ShadowCastCellData> CellFrontier = new();
+    private readonly Stack<IShadowCastData> RowFrontier = new();
+    private readonly Stack<IShadowCastData> CellFrontier = new();
 
-    public void GetVisibility(CellData startCell, int range)
+    public void GetVisibility(IShadowCastData startCell, int range)
     {
         ClearData();
         HaveData = true;
-        var originCell = startCell.AttackRangeData;
-        VisitedCells.Add(originCell);
-        originCell.Display();
         
-        for (Octant octant = Octant.NE; octant <= Octant.NW; octant++)
+        OnValid(startCell);
+        VisitedCells.Add(startCell);
+        
+        for (OctantDirection octant = OctantDirection.NE; octant <= OctantDirection.NW; octant++)
         {
-            originCell.GetDirectionsForOctant(octant);
-            if (originCell.TryGetNextRow(out var rowOrigin))
-            {
-                RowFrontier.Push(rowOrigin);
-            }
+            (startCell.DepthDirection, startCell.ScanDirection) = octant.GetDirectionsForOctant();
+            EnqueueNextRow(startCell, 0.0f, 1.0f, range);
 
             while (RowFrontier.Count > 0)
             {
-                ShadowCastCellData row = RowFrontier.Pop();
+                IShadowCastData row = RowFrontier.Pop();
                 ScanRow(row, range);
             }
         }
     }
 
-    private void ScanRow(ShadowCastCellData rowOrigin, int range)
+    private void ScanRow(IShadowCastData rowOrigin, int range)
     {
-        ShadowCastCellData cellData = rowOrigin;
+        IShadowCastData cellData = rowOrigin;
         CellFrontier.Push(rowOrigin);
         VisitedCells.Add(rowOrigin);
         
@@ -43,16 +39,16 @@ public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
             ScanCell(cellData, range);
         }
         
-        if (cellData.Visible != Visibility.Opaque)
+        if (cellData.Transparency != TransparencyState.Opaque)
         {
             EnqueueNextRow(cellData.RowOrigin, cellData.MinSlope, cellData.MaxSlope, range);
         }
     }
 
-    private void ScanCell(ShadowCastCellData currentCellData, int range)
+    private void ScanCell(IShadowCastData currentCellData, int range)
     {
-        float enterSlope = (currentCellData.Column - 0.5f) / (currentCellData.Depth + 0.5f);
-        float exitSlope = (currentCellData.Column + 0.5f) / (currentCellData.Depth - 0.5f);
+        float enterSlope = (currentCellData.X - 0.5f) / (currentCellData.Y + 0.5f);
+        float exitSlope = (currentCellData.X + 0.5f) / (currentCellData.Y - 0.5f);
 
         bool underSlope = exitSlope < currentCellData.MinSlope;
         bool overSlope = enterSlope > currentCellData.MaxSlope;
@@ -62,22 +58,28 @@ public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
             EnqueueNextCell(currentCellData, currentCellData.MinSlope, currentCellData.MaxSlope, range);
             return;
         }
-        if (overSlope) return;
 
-        bool visible = currentCellData.IsVisible();
-        if (visible)
+        if (overSlope) return;
+        
+        if (currentCellData.IsTransparent())
         {
-            currentCellData.Visible = Visibility.Transparent;
-            currentCellData.Display();
+            currentCellData.Transparency = TransparencyState.Transparent;
             
-            if(currentCellData.PreviousVisible == Visibility.Opaque)
+            float slope = ((float)currentCellData.X) / ((float)currentCellData.Y);
+            currentCellData.Visible = (slope >= currentCellData.MinSlope && slope <= currentCellData.MaxSlope) ? 
+                VisibilityState.Visible : VisibilityState.Partial;
+            
+            OnValid(currentCellData);
+            
+            if(currentCellData.PreviousTransparency == TransparencyState.Opaque)
                 currentCellData.RowOrigin = currentCellData;
         }
         else
         {
-            currentCellData.Visible = Visibility.Opaque;
+            currentCellData.Transparency = TransparencyState.Opaque;
+            currentCellData.Visible = VisibilityState.Obscured;
             
-            if (currentCellData.PreviousVisible == Visibility.Transparent)
+            if (currentCellData.PreviousTransparency == TransparencyState.Transparent)
                 EnqueueNextRow(currentCellData.RowOrigin, currentCellData.MinSlope, Math.Min(currentCellData.MaxSlope, enterSlope), range);
             
             currentCellData.MinSlope = Math.Max(currentCellData.MinSlope, exitSlope);
@@ -86,29 +88,52 @@ public class ShadowCastHandler : PathfindingSearchHandler<ShadowCastCellData>
         EnqueueNextCell(currentCellData, currentCellData.MinSlope, currentCellData.MaxSlope, range);
     }
 
-    void EnqueueNextRow(ShadowCastCellData current, float minSlope, float maxSlope, int range)
+    void EnqueueNextRow(IShadowCastData current, float minSlope, float maxSlope, int range)
     {
         if (current.Distance >= range ||
             minSlope >= maxSlope ||
-            !current.TryGetNextRow(out var newRow)) return;
+            !current.TryGetNext(current.DepthDirection, out var newRow)) return;
+        
+        newRow.DepthDirection = current.DepthDirection;
+        newRow.ScanDirection = current.ScanDirection;
+        newRow.Transparency = TransparencyState.Inapplicable;
+        newRow.PreviousTransparency = TransparencyState.Inapplicable;
+        newRow.X = current.X;
+        newRow.Y = current.Y + 1;
         newRow.MinSlope = minSlope;
         newRow.MaxSlope = maxSlope;
+        newRow.RowOrigin = newRow;
+        
         RowFrontier.Push(newRow);
     }
-    void EnqueueNextCell(ShadowCastCellData current, float minSlope, float maxSlope, int range)
+    void EnqueueNextCell(IShadowCastData current, float minSlope, float maxSlope, int range)
     {
-        if (current.Column >= current.Depth ||
+        if (current.X >= current.Y ||
             current.Distance >= range ||
             minSlope >= maxSlope ||
-            !current.TryGetNextCell(out var newCell)) return;
-        CellFrontier.Push(newCell);
+            !current.TryGetNext(current.ScanDirection, out var newCell)) return;
+        
+        newCell.DepthDirection = current.DepthDirection;
+        newCell.ScanDirection = current.ScanDirection;
+        newCell.Transparency = TransparencyState.Inapplicable;
+        newCell.PreviousTransparency = current.Transparency;
+        newCell.X = current.X + 1;
+        newCell.Y = current.Y;
+        newCell.MinSlope = minSlope;
+        newCell.MaxSlope = maxSlope;
+        newCell.RowOrigin = current.RowOrigin;
+        
         VisitedCells.Add(newCell);
+        CellFrontier.Push(newCell);
     }
-
+    
     public override void ClearData()
     {
         base.ClearData();
         RowFrontier.Clear();
         CellFrontier.Clear();
     }
+
+    protected override void ValidateCell(IShadowCastData cell) => cell.OnValid();
+    protected override void ClearCell(IShadowCastData cell) => cell.Clear();
 }

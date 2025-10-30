@@ -9,19 +9,19 @@ public class AttackOrder : UnitOrder
     
     public override bool Completed { get; protected set; }
 
-    private List<IGridCell> AttackPath;
+    private List<ICellSearchData> AttackPath;
     private Transform UnitTransform;
     private Quaternion AttackRotation;
     
-    public AttackOrder(List<IGridCell> attackPath)
+    public AttackOrder(List<ICellSearchData> attackPath)
     {
-        AttackPath = attackPath;
+        AttackPath = new List<ICellSearchData>(attackPath);
     }
     
     public override void Initialize(IGridUnit myself)
     {
         UnitTransform = myself.Transform;
-        Vector3 attackDirection = AttackPath.Last().Transform.position - myself.Transform.position;
+        Vector3 attackDirection = AttackPath.Last().Cell.GridObject.Transform.position - myself.Transform.position;
         AttackRotation = Quaternion.LookRotation(attackDirection, Vector3.up);
     }
 
@@ -39,6 +39,6 @@ public class AttackOrder : UnitOrder
 
     public override void Finish()
     {
-        AttackPath.Last().Unit.Destroy();
+        AttackPath.Last().Cell.GridObject.Unit.Destroy();
     }
 }

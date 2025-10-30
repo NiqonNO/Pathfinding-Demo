@@ -12,35 +12,35 @@ public class MoveOrder : UnitOrder
     
     public override bool Completed { get; protected set; }
 
-    private List<IGridCell> MovementPath;
+    private List<ICellSearchData> MovementPath;
     private int CurrentTargetIndex = 0;
     private Transform UnitTransform;
     private IAnimator UnitAnimator;
 
-    public MoveOrder(List<IGridCell> movementPath)
+    public MoveOrder(List<ICellSearchData> movementPath)
     {
-        MovementPath = new List<IGridCell>(movementPath);
+        MovementPath = new List<ICellSearchData>(movementPath);
     }
     
     public override void Initialize(IGridUnit myself)
     {
         UnitTransform = myself.Transform;
         UnitAnimator = myself.UnitAnimator;
-        myself.AssignCell(MovementPath.Last());
+        myself.AssignCell(MovementPath.Last().Cell.GridObject);
         
         UnitAnimator.TrySetFloat(Running, MovementSpeed);
     }
 
     public override void Update()
     {
-        Vector3 targetPos = MovementPath[CurrentTargetIndex].Transform.position;
+        Vector3 targetPos = MovementPath[CurrentTargetIndex].Cell.GridObject.Transform.position;
         UnitTransform.position = Vector3.MoveTowards(
             UnitTransform.position, targetPos,
             MovementSpeed * Time.deltaTime);
 
         Vector3 moveDirection = CurrentTargetIndex > 0
-            ? targetPos - MovementPath[CurrentTargetIndex - 1].Transform.position
-            : MovementPath[CurrentTargetIndex + 1].Transform.position - targetPos;
+            ? targetPos - MovementPath[CurrentTargetIndex - 1].Cell.GridObject.Transform.position
+            : MovementPath[CurrentTargetIndex + 1].Cell.GridObject.Transform.position - targetPos;
         
         Quaternion targetRot = Quaternion.LookRotation(moveDirection, Vector3.up);
         UnitTransform.rotation = Quaternion.RotateTowards(

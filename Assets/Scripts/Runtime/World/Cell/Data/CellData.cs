@@ -8,27 +8,14 @@ public class CellData
     
     public IGridCell GridObject { get; }
 
-    public BSFCellData MovementRangeData { get; }
-    public AStarCellData MovementPathData { get; }
-    public ShadowCastCellData AttackRangeData { get; }
-    public DDACellData AttackPathData { get; }
+    public PathfindingData MovementData { get; }
+    public VisibilityData AttackData { get; }
     
     public CellType CellType { get; private set; }
     public Vector2Int CellCoordinates { get; private set; }
     
-    public bool IsRange => MovementRangeData is { Active: true };
-    public bool IsMovementPath => MovementPathData is { Active: true };
-    public bool IsVisibility  => AttackRangeData is { Active: true };
-    public bool IsAttack  => AttackPathData is { Active: true };
-
-    public int MovementDistance =>
-        IsRange ? MovementRangeData.Distance :
-        IsMovementPath ? MovementPathData.Distance : 0;
-    public int AttackDistance =>
-        IsVisibility ? AttackRangeData.Distance : 0;
-    
     public bool Occupied => GridObject.Occupied;
-    
+
     public CellData(IGridCell gridObject, Vector2Int coordinates, CellType cellType, Action<CellData> onUpdateData)
     {
         GridObject = gridObject;
@@ -36,10 +23,8 @@ public class CellData
         CellType = cellType;
         OnDataUpdate = onUpdateData;
         
-        MovementRangeData = new BSFCellData(this);
-        MovementPathData = new AStarCellData(this);
-        AttackRangeData = new ShadowCastCellData(this);
-        AttackPathData = new DDACellData(this);
+        MovementData = new PathfindingData(this);
+        AttackData = new VisibilityData(this);
     }
 
     public bool TryGetNeighbor(CellDirection direction, out CellData cell)
