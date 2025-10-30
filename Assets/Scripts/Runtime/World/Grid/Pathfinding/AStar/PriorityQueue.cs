@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 public class PriorityQueue<T>
 {
-    private readonly List<(T item, float priority)> Heap = new();
+    private readonly List<(T item, int priority)> Heap = new();
     private readonly Dictionary<T, int> Positions = new();
 
     public int Count => Heap.Count;
 
     public bool Contains(T item) => Positions.ContainsKey(item);
 
-    public void Enqueue(T item, float priority)
+    public void Enqueue(T item, int priority)
     {
         Heap.Add((item, priority));
         int index = Heap.Count - 1;
@@ -45,7 +45,7 @@ public class PriorityQueue<T>
         Positions.Clear();
     }
 
-    public void UpdatePriority(T item, float newPriority)
+    public void UpdatePriority(T item, int newPriority)
     {
         if (!Positions.TryGetValue(item, out int index))
             return;

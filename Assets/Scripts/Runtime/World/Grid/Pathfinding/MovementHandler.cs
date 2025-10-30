@@ -2,7 +2,7 @@
 
 public class MovementHandler
 {
-	private readonly BSFHandler RangeHandler = new();
+	private readonly BFSHandler RangeHandler = new();
 	private readonly AStarHandler PathHandler = new();
 	
 	public List<ICellSearchData> Path => PathHandler.Path;

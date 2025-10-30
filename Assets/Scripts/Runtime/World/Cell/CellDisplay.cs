@@ -70,12 +70,13 @@ public class CellDisplay : MonoBehaviour
     IEnumerator Pulse()
     {
         float duration = 0.2f;
-        Vector3 targetScale = Vector3.one * 1.5f;
+        Vector3 targetScale = Vector3.one * 1.3f;
         float t = 0f;
         while (t < 1f)
         {
             t += Time.deltaTime / duration;
-            Outline.transform.localScale = Vector3.Lerp(Vector3.one, targetScale, t*t);
+            Marker.pixelsPerUnitMultiplier = Mathf.Lerp(50, 25, t);
+            Marker.transform.localScale = Vector3.Lerp(Vector3.one, targetScale, t*t);
             yield return null;
         }
 
@@ -83,11 +84,12 @@ public class CellDisplay : MonoBehaviour
         while (t < 1f)
         {
             t += Time.deltaTime / duration;
-            Outline.transform.localScale = Vector3.Lerp(targetScale, Vector3.one, Mathf.Sqrt(t));
+            Marker.pixelsPerUnitMultiplier = Mathf.Lerp(25, 50, t);
+            Marker.transform.localScale = Vector3.Lerp(targetScale, Vector3.one, Mathf.Sqrt(t));
             yield return null;
         }
 
-        Outline.transform.localScale = Vector3.one;
+        Marker.transform.localScale = Vector3.one;
         TouchAnimation = null;
     }
 

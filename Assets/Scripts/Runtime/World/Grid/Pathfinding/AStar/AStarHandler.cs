@@ -13,10 +13,11 @@ public class AStarHandler : CellSearchHandler<IAStarData>
     public void FindPath(IAStarData startCell, IAStarData endCell)
     {
         ClearData();
+        if (!endCell.IsTraversable()) return;
         HaveData = true;
         
         startCell.Distance = 0;
-        startCell.Estimation = EuclideanDistance(startCell, endCell);
+        startCell.Estimation = ManhattanDistance(startCell, endCell);
         
         VisitedCells.Add(startCell);
         Frontier.Enqueue(startCell, startCell.Estimation);
@@ -42,18 +43,20 @@ public class AStarHandler : CellSearchHandler<IAStarData>
             !neighbor.IsTraversable()) return;
         
         int tentativeG = current.Distance + 1;
-        if (VisitedCells.Contains(neighbor) && tentativeG >= neighbor.Distance) return;
+
+        if (VisitedCells.Contains(neighbor) && 
+            tentativeG >= neighbor.Distance) return;
 
         neighbor.Previous = current;
         neighbor.Distance = tentativeG;
-        neighbor.Estimation = tentativeG + EuclideanDistance(neighbor, endCell);
+        neighbor.Estimation = tentativeG + ManhattanDistance(neighbor, endCell);
         
         if (Frontier.Contains(neighbor))
         {
             Frontier.UpdatePriority(neighbor, neighbor.Estimation);
             return;
         }
-
+        
         VisitedCells.Add(neighbor);
         Frontier.Enqueue(neighbor, neighbor.Estimation);
     }
@@ -97,7 +100,7 @@ public class AStarHandler : CellSearchHandler<IAStarData>
     protected override void ValidateCell(IAStarData cell) => cell.OnValid();
     protected override void ClearCell(IAStarData cell) => cell.Clear();
     
-    private int EuclideanDistance(IAStarData startCell, IAStarData endCell)
+    private int ManhattanDistance(IAStarData startCell, IAStarData endCell)
     {
         int dx = Mathf.Abs(startCell.X - endCell.X);
         int dy = Mathf.Abs(startCell.Y - endCell.Y);

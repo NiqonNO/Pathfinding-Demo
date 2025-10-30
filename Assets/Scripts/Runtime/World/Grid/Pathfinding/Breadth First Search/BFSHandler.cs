@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 
-public class BSFHandler : CellSearchHandler<IBSFData>
+public class BFSHandler : CellSearchHandler<IBFSData>
 {
-	private readonly Queue<IBSFData> Frontier = new();
+	private readonly Queue<IBFSData> Frontier = new();
 	public bool HaveRange => HaveData;
     
-	public void GetRange(IBSFData startCell, int range)
+	public void GetRange(IBFSData startCell, int range)
 	{
 		ClearData();
 		HaveData = true;
@@ -18,7 +18,7 @@ public class BSFHandler : CellSearchHandler<IBSFData>
 
 		while (Frontier.Count > 0)
 		{
-			IBSFData current = Frontier.Dequeue();
+			IBFSData current = Frontier.Dequeue();
 			if (current.Distance >= range) continue;
 			for (CellDirection direction = CellDirection.N; direction <= CellDirection.W; direction++)
 			{
@@ -26,7 +26,7 @@ public class BSFHandler : CellSearchHandler<IBSFData>
 			}
 		}
 	}
-	void ScanCell(IBSFData current, CellDirection direction)
+	void ScanCell(IBFSData current, CellDirection direction)
 	{
 		if (!current.TryGetNext(direction, out var neighbor) ||
 		    !neighbor.IsTraversable() ||
@@ -44,6 +44,6 @@ public class BSFHandler : CellSearchHandler<IBSFData>
 		Frontier.Clear();
 	}
 	
-	protected override void ValidateCell(IBSFData cell) => cell.OnValid();
-	protected override void ClearCell(IBSFData cell) => cell.Clear();
+	protected override void ValidateCell(IBFSData cell) => cell.OnValid();
+	protected override void ClearCell(IBFSData cell) => cell.Clear();
 }

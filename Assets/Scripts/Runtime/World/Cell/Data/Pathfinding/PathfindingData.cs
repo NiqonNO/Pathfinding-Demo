@@ -1,11 +1,13 @@
-﻿public class PathfindingData : IBSFData, IAStarData
+﻿public class PathfindingData : IBFSData, IAStarData
 {
 	public CellData Cell { get; }
 
 	public IAStarData Previous { get; set; } = null;
 	public int X => Cell.CellCoordinates.x;
 	public int Y => Cell.CellCoordinates.y;
-	public int Distance { get; set; } = int.MaxValue;
+	int IBFSData.Distance { get; set; } = 0;
+	int IAStarData.Distance { get; set; } = int.MaxValue;
+	public int Distance => IsPath ? ((IAStarData)this).Distance : ((IBFSData)this).Distance;
 	public int Estimation { get; set; } = int.MaxValue;
 	public bool IsOutOfRange { get; set; } = false;
 
@@ -19,7 +21,7 @@
 		Cell = cell;
 	}
 	
-	public bool TryGetNext(CellDirection direction, out IBSFData newCellData) => TryGetNext<IBSFData>(direction, out newCellData);
+	public bool TryGetNext(CellDirection direction, out IBFSData newCellData) => TryGetNext<IBFSData>(direction, out newCellData);
 	public bool TryGetNext(CellDirection direction, out IAStarData newCellData) => TryGetNext<IAStarData>(direction, out newCellData);
 	private bool TryGetNext<T>(CellDirection direction, out T newCellData) where T : class
 	{
@@ -43,7 +45,7 @@
 		
 		Cell.UpdateDisplay();
 	}
-	void IBSFData.OnValid()
+	void IBFSData.OnValid()
 	{
 		IsRange = true;
 		
@@ -52,29 +54,31 @@
 	void IAStarData.Clear()
 	{
 		IsPath = false;
-		
+
+		((IAStarData)this).Distance = int.MaxValue;
 		Estimation = int.MaxValue;
 		IsOutOfRange = false;
 		Previous = null;
 		
 		Cell.UpdateDisplay();
 	}
-	void IBSFData.Clear()
+	void IBFSData.Clear()
 	{
 		IsRange = false;
 		
+		((IBFSData)this).Distance = 0;
 		Cell.UpdateDisplay();
 	}
 
 	public void OnValid()
 	{
-		((IBSFData)this).OnValid();
+		((IBFSData)this).OnValid();
 		((IAStarData)this).OnValid();
 	}
 
 	public void Clear()
 	{
-		((IBSFData)this).Clear();
+		((IBFSData)this).Clear();
 		((IAStarData)this).Clear();
 	}
 }
