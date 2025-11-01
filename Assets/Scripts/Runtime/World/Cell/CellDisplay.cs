@@ -123,10 +123,10 @@ public class CellDisplay : MonoBehaviour
                     break;
                 case VisibilityState.Partial:
                     cellColor = CellSettings.VisibilityHighlightColor;
+                    cellText = "X";
                     break;
                 case VisibilityState.Visible:
                     cellColor = CellSettings.VisibilityHighlightColor;
-                    cellText = "X";
                     break;
             }
         }

@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using Yohash.PriorityQueue;
 
 public class AStarHandler : CellSearchHandler<IAStarData>
 {
-    private readonly PriorityQueue<IAStarData> Frontier = new();
+    private readonly SimplePriorityQueue<IAStarData> Frontier = new();
     
     public List<ICellSearchData> Path { get; private set; } = new();
     public bool FoundPath { get; private set; }
